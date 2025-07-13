@@ -18,16 +18,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CsvQuestionDao implements QuestionDao {
 
-   private final TestFileNameProvider fileNameProvider;
+    private final TestFileNameProvider fileNameProvider;
 
     @Override
     public List<Question> findAll() {
         String fileName = fileNameProvider.getTestFileName();
-        List<Question> questionList = new ArrayList<>();
+        List<Question> questionList;
 
         try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(fileName);
-                BufferedReader reader = inputStream != null ?
-                        new BufferedReader(new InputStreamReader(inputStream)) : null) {
+             BufferedReader reader = inputStream != null ?
+                     new BufferedReader(new InputStreamReader(inputStream)) : null) {
 
             if (reader == null) {
                 throw new ResourceNotFoundException("Resource not found: " + fileName);
@@ -37,11 +37,9 @@ public class CsvQuestionDao implements QuestionDao {
                     .withType(QuestionDto.class).withSeparator(';')
                     .withSkipLines(1).withIgnoreLeadingWhiteSpace(true).build().parse();
 
-            for (QuestionDto questionDto : questionDtoList) {
-                questionList.add(questionDto.toDomainObject());
-            }
+            questionList = questionDtoList.stream().map(QuestionDto::toDomainObject).toList();
 
-        } catch (IOException ex) {
+        } catch (IOException | RuntimeException ex) {
             throw new QuestionReadException("Can't read csv file: " + fileName, ex);
         }
         return new ArrayList<>(questionList);

@@ -7,16 +7,20 @@ import ru.otus.hw.dao.QuestionDao;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.anyString;
+
 
 class TestServiceImplTest {
 
     private IOService ioService;
-    private  QuestionDao questionDao;
+    private QuestionDao questionDao;
     private Question question;
     private Answer answer;
     private TestService testService;
