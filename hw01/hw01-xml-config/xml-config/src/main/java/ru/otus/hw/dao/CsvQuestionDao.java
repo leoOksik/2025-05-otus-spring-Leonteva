@@ -12,7 +12,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -23,7 +22,7 @@ public class CsvQuestionDao implements QuestionDao {
     @Override
     public List<Question> findAll() {
         String fileName = fileNameProvider.getTestFileName();
-        List<Question> questionList;
+        List<QuestionDto> questionDtoList;
 
         try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(fileName);
              BufferedReader reader = inputStream != null ?
@@ -33,15 +32,12 @@ public class CsvQuestionDao implements QuestionDao {
                 throw new ResourceNotFoundException("Resource not found: " + fileName);
             }
 
-            List<QuestionDto> questionDtoList = new CsvToBeanBuilder<QuestionDto>(reader)
+            questionDtoList = new CsvToBeanBuilder<QuestionDto>(reader)
                     .withType(QuestionDto.class).withSeparator(';')
                     .withSkipLines(1).withIgnoreLeadingWhiteSpace(true).build().parse();
-
-            questionList = questionDtoList.stream().map(QuestionDto::toDomainObject).toList();
-
         } catch (IOException | RuntimeException ex) {
             throw new QuestionReadException("Can't read csv file: " + fileName, ex);
         }
-        return new ArrayList<>(questionList);
+        return questionDtoList.stream().map(QuestionDto::toDomainObject).toList();
     }
 }
