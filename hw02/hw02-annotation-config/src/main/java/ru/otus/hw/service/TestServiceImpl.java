@@ -25,9 +25,10 @@ public class TestServiceImpl implements TestService {
             ioService.printFormattedLine(question.text());
             question.answers().forEach(answer -> ioService.printFormattedLine(answer.text()));
             ioService.printLine("");
-            String userAnswer = ioService.readString();
-            var isAnswerValid = question.answers().stream()
-                    .anyMatch(answer -> answer.text().equalsIgnoreCase(userAnswer) && answer.isCorrect());
+            int userAnswer = ioService.readIntForRangeWithPrompt(
+                    1, 4, "Choose the correct answer from 1 to 4",
+                    "Incorrect input. Enter a number between 1 and 4");
+            var isAnswerValid = question.answers().get(userAnswer - 1).isCorrect();
             testResult.applyAnswer(question, isAnswerValid);
             ioService.printLine("");
         }

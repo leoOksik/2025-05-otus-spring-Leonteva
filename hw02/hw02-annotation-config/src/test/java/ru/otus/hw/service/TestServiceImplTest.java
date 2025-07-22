@@ -20,6 +20,7 @@ import java.util.stream.IntStream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
@@ -72,15 +73,16 @@ class TestServiceImplTest {
         when(testFileNameProvider.testFileName()).thenReturn("validQuestions.csv");
         List<Question> questions = questionDao.findAll();
 
-        List<String> correctAnswersList = questions.stream()
-                .flatMap(q -> q.answers().stream().filter(Answer::isCorrect)
-                        .findAny().map(Answer::text).stream()).toList();
+        List<Integer> answersList = IntStream.range(0, questions.size()).mapToObj(i -> {
+            int correctIndex = IntStream.range(0, questions.get(i).answers().size())
+                    .filter(j -> questions.get(i).answers().get(j).isCorrect())
+                    .findAny().orElse(-1);
+            return (i < 3) ? correctIndex + 1 : 4;
+        }).toList();
 
-        List<String> withIncorrectAnswersList = IntStream.range(0, correctAnswersList.size())
-                .mapToObj(i -> i < 3 ? correctAnswersList.get(i) : "falseAnswers").toList();
-
-        Iterator<String> iterator = withIncorrectAnswersList.iterator();
-        when(ioService.readString()).thenAnswer(invocation -> iterator.next());
+        Iterator<Integer> iterator = answersList.iterator();
+        when(ioService.readIntForRangeWithPrompt(anyInt(), anyInt(), anyString(), anyString()))
+                .thenAnswer(invocation -> iterator.next());
 
         Student student = new Student("FirstNameTest", "LastNameTest");
         TestResult result = testService.executeTestFor(student);
