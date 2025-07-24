@@ -14,7 +14,6 @@ import ru.otus.hw.domain.TestResult;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Iterator;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -73,16 +72,13 @@ class TestServiceImplTest {
         when(testFileNameProvider.testFileName()).thenReturn("validQuestions.csv");
         List<Question> questions = questionDao.findAll();
 
-        List<Integer> answersList = IntStream.range(0, questions.size()).mapToObj(i -> {
-            int correctIndex = IntStream.range(0, questions.get(i).answers().size())
-                    .filter(j -> questions.get(i).answers().get(j).isCorrect())
-                    .findAny().orElse(-1);
-            return (i < 3) ? correctIndex + 1 : 4;
-        }).toList();
+        List<Integer> answersList = IntStream.range(0, questions.size())
+                .mapToObj(i -> IntStream.range(0, questions.get(i).answers().size())
+                        .filter(j -> i < 3 == questions.get(i).answers().get(j).isCorrect())
+                        .findFirst().orElse(0) + 1).toList();
 
-        Iterator<Integer> iterator = answersList.iterator();
         when(ioService.readIntForRangeWithPrompt(anyInt(), anyInt(), anyString(), anyString()))
-                .thenAnswer(invocation -> iterator.next());
+                .thenReturn(answersList.get(0), answersList.subList(1, answersList.size()).toArray(new Integer[0]));
 
         Student student = new Student("FirstNameTest", "LastNameTest");
         TestResult result = testService.executeTestFor(student);

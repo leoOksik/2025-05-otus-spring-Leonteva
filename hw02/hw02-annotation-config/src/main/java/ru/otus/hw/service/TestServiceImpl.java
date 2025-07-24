@@ -23,11 +23,17 @@ public class TestServiceImpl implements TestService {
 
         for (var question : questions) {
             ioService.printFormattedLine(question.text());
+            int maxAnswerCount = question.answers().size();
+            int minAnswerCount = Math.min(maxAnswerCount, 1);
+
+            if (maxAnswerCount == 0) {
+                throw new IllegalStateException("Answers is empty for question: " + question.text());
+            }
+
             question.answers().forEach(answer -> ioService.printFormattedLine(answer.text()));
-            ioService.printLine("");
-            int userAnswer = ioService.readIntForRangeWithPrompt(
-                    1, 4, "Choose the correct answer from 1 to 4",
-                    "Incorrect input. Enter a number between 1 and 4");
+            int userAnswer = ioService.readIntForRangeWithPrompt(minAnswerCount, maxAnswerCount,
+                    "Choose the correct answer from " + minAnswerCount + " to " + maxAnswerCount,
+                    "Incorrect input. Enter a number between " + minAnswerCount + " and " + maxAnswerCount);
             var isAnswerValid = question.answers().get(userAnswer - 1).isCorrect();
             testResult.applyAnswer(question, isAnswerValid);
             ioService.printLine("");
