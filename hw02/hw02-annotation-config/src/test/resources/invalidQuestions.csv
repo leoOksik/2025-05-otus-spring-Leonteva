@@ -1,0 +1,6 @@
+question;answers
+"Which instruction moves data?""MOV|ADD%false|SUB%false|JMP%false"
+"What does PUSH do?";"Saves to stack%true|Adds numbers%false|Jumps%false|Compares%false"
+"Return from subroutine?";"RET%true|CALL%false|JMP%false|INT%false"
+"Which operation is performed by the CMP instruction?";"Compare%true|Jump%false|Add%false|Multiply%false"
+"Which register typically holds the return address when calling a subroutine?67890
