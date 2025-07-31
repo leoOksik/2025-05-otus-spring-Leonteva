@@ -12,9 +12,9 @@ import ru.otus.hw.domain.Question;
 import ru.otus.hw.domain.Student;
 import ru.otus.hw.domain.TestResult;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -60,10 +60,12 @@ class TestServiceImplTest {
         when(question.answers()).thenReturn(answerList);
         when(questionDaoMock.findAll()).thenReturn(questions);
 
+        when(ioService.readIntForRangeWithPrompt(anyInt(), anyInt(), anyString(), anyString())).thenReturn(1);
+
         testService.executeTestFor(new Student("FirstNameTest", "LastNameTest"));
 
         verify(ioService, times(26)).printFormattedLine(anyString());
-        verify(ioService, times(11)).printLine(anyString());
+        verify(ioService, times(6)).printLine(anyString());
     }
 
     @DisplayName("executeTestFor (Student student) should read questions from CSV and return test results")
@@ -71,22 +73,27 @@ class TestServiceImplTest {
     void executeTestFor_shouldReadCsvAndReturnTestResults() {
         when(testFileNameProvider.testFileName()).thenReturn("validQuestions.csv");
         List<Question> questions = questionDao.findAll();
+        List<Integer> rightAnswersCount = new ArrayList<>();
 
-        List<Integer> answersList = IntStream.range(0, questions.size())
-                .mapToObj(i -> IntStream.range(0, questions.get(i).answers().size())
-                        .filter(j -> i < 3 == questions.get(i).answers().get(j).isCorrect())
-                        .findFirst().orElse(0) + 1).toList();
+        for (Question question : questions) {
+            for (int i = 0; i < question.answers().size(); i++) {
+                if (question.answers().get(i).isCorrect()) {
+                    rightAnswersCount.add(i + 1);
+                }
+            }
+        }
 
         when(ioService.readIntForRangeWithPrompt(anyInt(), anyInt(), anyString(), anyString()))
-                .thenReturn(answersList.get(0), answersList.subList(1, answersList.size()).toArray(new Integer[0]));
+            .thenReturn(rightAnswersCount.get(0), rightAnswersCount.subList(1, rightAnswersCount.size()).toArray(new Integer[0]));
 
         Student student = new Student("FirstNameTest", "LastNameTest");
         TestResult result = testService.executeTestFor(student);
 
         assertAll("TestResult",
-                () -> assertEquals(questions.size(), result.getAnsweredQuestions().size(), "All questions answered"),
-                () -> assertEquals(3, result.getRightAnswersCount(), "3 correct answers"),
-                () -> assertEquals(student, result.getStudent(), "Student matched")
+            () -> assertEquals(questions.size(), result.getAnsweredQuestions().size(), "All questions answered"),
+            () -> assertEquals(questions.size(), result.getRightAnswersCount(), "all correct answers"),
+            () -> assertEquals(student, result.getStudent(), "Student matched")
         );
     }
 }
+

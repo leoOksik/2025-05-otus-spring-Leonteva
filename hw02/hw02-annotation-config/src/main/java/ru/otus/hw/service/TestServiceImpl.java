@@ -24,7 +24,7 @@ public class TestServiceImpl implements TestService {
         for (var question : questions) {
             ioService.printFormattedLine(question.text());
             int maxAnswerCount = question.answers().size();
-            int minAnswerCount = Math.min(maxAnswerCount, 1);
+            int minAnswerCount = 1;
 
             if (maxAnswerCount == 0) {
                 throw new IllegalStateException("Answers is empty for question: " + question.text());
@@ -32,8 +32,8 @@ public class TestServiceImpl implements TestService {
 
             question.answers().forEach(answer -> ioService.printFormattedLine(answer.text()));
             int userAnswer = ioService.readIntForRangeWithPrompt(minAnswerCount, maxAnswerCount,
-                    "Choose the correct answer from " + minAnswerCount + " to " + maxAnswerCount,
-                    "Incorrect input. Enter a number between " + minAnswerCount + " and " + maxAnswerCount);
+                "Choose the correct answer from  %d to %d".formatted(minAnswerCount, maxAnswerCount),
+                "Incorrect input. Enter a number between %d and %d".formatted(minAnswerCount, maxAnswerCount));
             var isAnswerValid = question.answers().get(userAnswer - 1).isCorrect();
             testResult.applyAnswer(question, isAnswerValid);
             ioService.printLine("");
