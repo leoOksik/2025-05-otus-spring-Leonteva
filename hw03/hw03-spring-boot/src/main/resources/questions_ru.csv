@@ -1,0 +1,6 @@
+question;answers
+"Какая команда перемещает данные?";"MOV%true|ADD%false|SUB%false|JMP%false"
+"Что делает команда PUSH?";"Сохраняет в стек%true|Складывает%false|Осуществляет переход%false|Сравнивает%false"
+"Возврат из подпрограммы?";"RET%true|CALL%false|JMP%false|INT%false"
+"Какую операцию выполняет команда CMP?";"Сравнивает%true|Осуществляет переход%false|Складывает%false|Умножает%false"
+"В каком регистре обычно хранится обратный адрес при вызове подпрограммы?";"EAX%false|EBX%false|ESP%true|EIP%false"
