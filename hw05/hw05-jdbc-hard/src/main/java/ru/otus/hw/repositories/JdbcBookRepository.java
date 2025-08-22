@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 import ru.otus.hw.exceptions.EntityNotFoundException;
 import ru.otus.hw.models.Author;
 import ru.otus.hw.models.Book;
@@ -17,12 +18,14 @@ import ru.otus.hw.models.Genre;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
+import java.util.Collections;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Objects;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Optional;
-import java.util.HashMap;
 
 import java.util.stream.Collectors;
 
@@ -119,14 +122,12 @@ public class JdbcBookRepository implements BookRepository {
     private void mergeBooksInfo(List<Book> booksWithoutGenres, List<Genre> genres,
                                 List<BookGenreRelation> relations) {
 
-        Map<Long, Genre> genreMap = new HashMap<>();
-        for (Genre genre : genres) {
-            genreMap.put(genre.getId(), genre);
-        }
+        Map<Long, Genre> genreMap = genres.stream().collect(Collectors.toMap(Genre::getId, genre -> genre));
+
         for (Book book : booksWithoutGenres) {
             List<Genre> genresList = new ArrayList<>();
             for (BookGenreRelation relation : relations) {
-                if (relation.bookId.equals(book.getId())) {
+                if (Objects.equals(relation.bookId, book.getId())) {
                     Optional.ofNullable(genreMap.get(relation.genreId))
                         .ifPresent(genresList::add);
                 }
@@ -136,7 +137,9 @@ public class JdbcBookRepository implements BookRepository {
     }
 
     private Book insert(@Valid @NotNull Book book) {
-
+        if (CollectionUtils.isEmpty(book.getGenres())) {
+            throw new IllegalArgumentException("Genres must not be empty");
+        }
         var keyHolder = new GeneratedKeyHolder();
 
         MapSqlParameterSource params = new MapSqlParameterSource()
@@ -144,10 +147,8 @@ public class JdbcBookRepository implements BookRepository {
             .addValue("author_id", book.getAuthor().getId());
 
         jdbcOperations.update("""
-            INSERT
-            INTO books (title,author_id)
-            VALUES(:title, :author_id)
-            """, params, keyHolder, new String[]{"id"});
+            INSERT INTO books (title,author_id)
+            VALUES(:title, :author_id)""", params, keyHolder, new String[]{"id"});
 
         //noinspection DataFlowIssue
         Long id = keyHolder.getKeyAs(Long.class);
@@ -155,43 +156,57 @@ public class JdbcBookRepository implements BookRepository {
             throw new IllegalStateException("Failed return id from db");
         }
         book.setId(id);
-        batchInsertGenresRelationsFor(book);
+        batchInsertGenresRelationsFor(book.getId(),
+            book.getGenres().stream().map(Genre::getId).collect(Collectors.toSet()));
+
         return book;
     }
 
     private Book update(@Valid @NotNull Book book) {
-
+        if (CollectionUtils.isEmpty(book.getGenres())) {
+            throw new IllegalArgumentException("Genres must not be empty");
+        }
         Map<String, Object> params = Map.of(
             "id", book.getId(), "title", book.getTitle(), "author_id", book.getAuthor().getId());
 
         int rowUpdate = jdbcOperations.update("""
-                UPDATE books
-                SET title = :title, author_id = :author_id
-                WHERE id=:id
-                """,
-            params);
+                UPDATE books SET title = :title, author_id = :author_id
+                WHERE id=:id""", params);
 
         if (rowUpdate == 0) {
             throw new EntityNotFoundException("Entity not found. Row wasn't updated");
         }
 
-        removeGenresRelationsFor(book);
-        batchInsertGenresRelationsFor(book);
-
+        Map<String, Set<Long>> mapGenres = findChangesBookGenreRelations(book);
+        if (mapGenres.containsKey("add")) {
+            batchInsertGenresRelationsFor(book.getId(), mapGenres.get("add"));
+        }
+        if (mapGenres.containsKey("remove")) {
+            removeGenresRelationsFor(book.getId(), mapGenres.get("remove"));
+        }
         return book;
     }
 
-    private void batchInsertGenresRelationsFor(@Valid @NotNull Book book) {
+    private Map<String, Set<Long>> findChangesBookGenreRelations(Book book) {
+        Map<String, Object> params = Map.of("id", book.getId());
 
-        if (book.getGenres() == null || book.getGenres().isEmpty()) {
-            throw new IllegalArgumentException("Genres must not be empty or null");
-        }
+        Set<Long> oldGenres = new HashSet<>(jdbcOperations.query("""
+            SELECT genre_id from books_genres
+            WHERE book_id=:id
+            """, params, ((rs, rowNum) -> rs.getLong("genre_id"))));
 
-        MapSqlParameterSource[] params = book.getGenres()
-            .stream()
-            .map(genre -> new MapSqlParameterSource()
-                .addValue("book_id", book.getId())
-                .addValue("genre_id", genre.getId()))
+        Set<Long> newGenres = book.getGenres().stream().map(Genre::getId).collect(Collectors.toSet());
+
+        return Map.of("add", newGenres.stream().filter(id -> !oldGenres.contains(id)).collect(Collectors.toSet()),
+            "remove", oldGenres.stream().filter(id -> !newGenres.contains(id)).collect(Collectors.toSet()));
+    }
+
+    private void batchInsertGenresRelationsFor(Long bookId, Set<Long> genresIds) {
+
+        MapSqlParameterSource[] params = genresIds.stream()
+            .map(genreId -> new MapSqlParameterSource()
+                .addValue("book_id", bookId)
+                .addValue("genre_id", genreId))
             .toArray(MapSqlParameterSource[]::new);
 
         jdbcOperations.batchUpdate("""
@@ -202,13 +217,15 @@ public class JdbcBookRepository implements BookRepository {
             params);
     }
 
-    private void removeGenresRelationsFor(@Valid @NotNull Book book) {
+    private void removeGenresRelationsFor(Long bookId, Set<Long> genresIds) {
+        MapSqlParameterSource params = new MapSqlParameterSource()
+            .addValue("book_id", bookId)
+            .addValue("genre_ids", genresIds);
+
         jdbcOperations.update("""
-                DELETE
-                FROM books_genres
-                WHERE book_id=:id
-                """,
-            Map.of("id", book.getId()));
+            DELETE FROM books_genres bg
+            WHERE bg.book_id = :book_id AND genre_id IN (:genre_ids)
+            """, params);
     }
 
     private static class BookRowMapper implements RowMapper<Book> {
