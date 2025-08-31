@@ -1,0 +1,30 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1.0-create-books-table
+      author: oksana
+      changes:
+        - createTable:
+            tableName: books
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: author_id
+                  type: bigint
+
+        - addForeignKeyConstraint:
+            baseTableName: books
+            baseColumnNames: author_id
+            constraintName: fk_book_author
+            referencedTableName: authors
+            referencedColumnNames: id
+            onDelete: CASCADE

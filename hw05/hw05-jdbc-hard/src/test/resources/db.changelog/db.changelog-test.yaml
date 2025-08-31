@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - include:
+      file: v1_0/db.changelog-1.0-create-authors-table.yaml
+      relativeToChangelogFile: false
+      comment: "create table authors"
+  - include:
+      file: v1_0/db.changelog-1.0-create-genres-table.yaml
+      relativeToChangelogFile: false
+      comment: "create table genres"
+  - include:
+      file: v1_0/db.changelog-1.0-create-books-table.yaml
+      relativeToChangelogFile: false
+      comment: "create table books"
+  - include:
+      file: v1_0/db.changelog-1.0-create-books_genres-table.yaml
+      relativeToChangelogFile: false
+      comment: "create table books_genres"
+  - include:
+      file: db.changelog-1.1-insert-test-data.yaml
+      relativeToChangelogFile: true
