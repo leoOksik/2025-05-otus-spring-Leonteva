@@ -1,0 +1,48 @@
+package ru.otus.hw.repositories;
+
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.Import;
+import ru.otus.hw.models.Author;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@DisplayName("Репозиторий на основе JPA для работы с авторами")
+@DataJpaTest
+@Import(JpaAuthorRepository.class)
+@Slf4j
+public class JpaAuthorRepositoryTest {
+
+    private static final Long GET_AUTHOR_ID = 1L;
+
+    @Autowired
+    JpaAuthorRepository jpaAuthorRepository;
+
+    @Autowired
+    TestEntityManager testEntityManager;
+
+    @Test
+    @DisplayName("должен загружать автора по id")
+    void shouldReturnCorrectAuthorById() {
+        var expectedAuthor = testEntityManager.find(Author.class, GET_AUTHOR_ID);
+
+        var actualAuthor = jpaAuthorRepository.findById(GET_AUTHOR_ID);
+
+        assertThat(actualAuthor).isPresent().get().usingRecursiveComparison().isEqualTo(expectedAuthor);
+    }
+
+    @Test
+    @DisplayName("должен загружать список всех авторов")
+    void shouldReturnCorrectAuthorList() {
+        var returnedAuthors = jpaAuthorRepository.findAll();
+
+        assertThat(returnedAuthors).isNotNull().hasSize(3)
+            .allMatch(a -> a.getFullName() != null && !a.getFullName().isBlank());
+
+        returnedAuthors.forEach(author -> log.info("Authors: {}", author));
+    }
+}
