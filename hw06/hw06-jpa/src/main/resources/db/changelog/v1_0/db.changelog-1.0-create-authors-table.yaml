@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1.0-create-authors-table
+      author: mentor
+      changes:
+        - createTable:
+            tableName: authors
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: full_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
