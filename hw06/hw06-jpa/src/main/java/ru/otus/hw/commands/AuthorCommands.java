@@ -8,7 +8,6 @@ import ru.otus.hw.services.AuthorService;
 
 import java.util.stream.Collectors;
 
-@SuppressWarnings("ClassCanBeRecord")
 @RequiredArgsConstructor
 @ShellComponent
 public class AuthorCommands {

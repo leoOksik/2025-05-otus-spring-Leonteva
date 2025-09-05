@@ -32,7 +32,6 @@ class CommentServiceImplTest {
             assertThat(book).isNotNull();
             assertThat(book.getAuthor()).isNotNull();
             assertThat(book.getGenres()).isNotEmpty();
-            assertThat(book.getComments()).isNotEmpty();
         });
     }
 
@@ -48,7 +47,6 @@ class CommentServiceImplTest {
                 assertThat(book).isNotNull();
                 assertThat(book.getAuthor()).isNotNull();
                 assertThat(book.getGenres()).isNotEmpty();
-                assertThat(book.getComments()).isNotEmpty();
             });
         });
     }

@@ -9,7 +9,6 @@ import ru.otus.hw.services.CommentService;
 
 import java.util.stream.Collectors;
 
-@SuppressWarnings("ClassCanBeRecord")
 @RequiredArgsConstructor
 @ShellComponent
 public class CommentCommands {

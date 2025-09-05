@@ -32,7 +32,6 @@ public class BookServiceImplTest {
         assertDoesNotThrow(() -> {
             assertThat(book.getAuthor()).isNotNull();
             assertThat(book.getGenres()).isNotEmpty();
-            assertThat(book.getComments()).isNotEmpty();
         });
     }
 
@@ -46,7 +45,6 @@ public class BookServiceImplTest {
             books.forEach(book -> {
                 assertThat(book.getAuthor()).isNotNull();
                 assertThat(book.getGenres()).isNotEmpty();
-                assertThat(book.getComments()).isNotEmpty();
             }));
     }
 }

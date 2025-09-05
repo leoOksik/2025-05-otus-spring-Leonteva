@@ -6,14 +6,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Id;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.NamedEntityGraphs;
 import jakarta.persistence.NamedAttributeNode;
 import jakarta.validation.constraints.NotNull;
@@ -61,11 +59,6 @@ public class Book {
     @JoinTable(name = "books_genres", joinColumns = @JoinColumn(name = "book_id"),
         inverseJoinColumns = @JoinColumn(name = "genre_id"))
     private List<Genre> genres;
-
-    @Fetch(FetchMode.SUBSELECT)
-    @OneToMany(targetEntity = Comment.class, mappedBy = "book", cascade = CascadeType.ALL,
-        fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<Comment> comments;
 
     @Override
     public String toString() {

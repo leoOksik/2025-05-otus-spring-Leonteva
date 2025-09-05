@@ -10,14 +10,12 @@ import ru.otus.hw.repositories.BookRepository;
 import ru.otus.hw.repositories.GenreRepository;
 
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Set;
 import java.util.Optional;
 import java.util.Objects;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
 
-@SuppressWarnings("ClassCanBeRecord")
 @RequiredArgsConstructor
 @Service
 public class BookServiceImpl implements BookService {
@@ -76,7 +74,7 @@ public class BookServiceImpl implements BookService {
             throw new EntityNotFoundException("One or all genres with ids %s not found".formatted(genresIds));
         }
 
-        var book = new Book(id, title, author, genres, new ArrayList<>());
+        var book = new Book(id, title, author, genres);
         return bookRepository.save(book);
     }
 }

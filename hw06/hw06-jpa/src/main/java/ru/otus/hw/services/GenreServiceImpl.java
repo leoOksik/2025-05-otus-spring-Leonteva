@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-@SuppressWarnings("ClassCanBeRecord")
 @RequiredArgsConstructor
 @Service
 public class GenreServiceImpl implements GenreService {

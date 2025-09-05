@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-@SuppressWarnings("ClassCanBeRecord")
 @RequiredArgsConstructor
 @Service
 public class AuthorServiceImpl implements AuthorService {

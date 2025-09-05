@@ -6,7 +6,6 @@ import ru.otus.hw.models.Book;
 
 import java.util.stream.Collectors;
 
-@SuppressWarnings("ClassCanBeRecord")
 @RequiredArgsConstructor
 @Component
 public class BookConverter {

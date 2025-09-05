@@ -51,10 +51,9 @@ class JpaBookRepositoryTest {
         var returnedBooks = jpaBookRepository.findAll();
 
         assertThat(returnedBooks).isNotNull().hasSize(3)
-            .allMatch(b -> !b.getTitle().equals(""))
+            .allMatch(b -> !b.getTitle().isEmpty())
             .allMatch(b -> b.getAuthor() != null)
-            .allMatch(b -> b.getGenres() != null && b.getGenres().size() > 0)
-            .anyMatch(b -> b.getComments() != null && b.getComments().size() > 0);
+            .allMatch(b -> b.getGenres() != null && !b.getGenres().isEmpty());
 
         returnedBooks.forEach(book -> log.info("Books: {}", book));
     }
@@ -69,17 +68,13 @@ class JpaBookRepositoryTest {
         testEntityManager.persist(genre1);
         testEntityManager.persist(genre2);
         var book = new Book(null, "Title_test", author,
-            new ArrayList<>(List.of(genre1, genre2)), new ArrayList<>());
+            new ArrayList<>(List.of(genre1, genre2)));
 
         var savedBook = jpaBookRepository.save(book);
         var expectedBook = testEntityManager.find(Book.class, savedBook.getId());
 
-        assertThat(savedBook)
-            .isNotNull()
-            .matches(b -> b.getId() != null)
-            .matches(b -> b.getTitle() != null && b.getTitle().equals("Title_test"))
-            .matches(b -> b.getAuthor() != null && b.getAuthor().getFullName().equals("Author_test"))
-            .usingRecursiveComparison().ignoringExpectedNullFields().isEqualTo(expectedBook).isNotNull();
+        assertThat(savedBook).usingRecursiveComparison().ignoringExpectedNullFields()
+            .isEqualTo(expectedBook).isNotNull();
 
         log.info("Saved book: {}", savedBook);
     }

@@ -10,7 +10,6 @@ import ru.otus.hw.services.BookService;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@SuppressWarnings("ClassCanBeRecord")
 @RequiredArgsConstructor
 @ShellComponent
 public class BookCommands {
