@@ -1,6 +1,5 @@
 package ru.otus.hw.repositories;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 @DisplayName("Репозиторий на основе ORM для работы с книгами ")
 @DataJpaTest
-@Slf4j
 class JpaBookRepositoryTest {
 
     private static final Long GET_BOOK_ID = 1L;
@@ -29,7 +28,6 @@ class JpaBookRepositoryTest {
 
     @Autowired
     TestEntityManager testEntityManager;
-
 
     @DisplayName("должен загружать книгу по id")
     @Test
@@ -46,12 +44,15 @@ class JpaBookRepositoryTest {
     void shouldReturnCorrectBooksList() {
         var returnedBooks = bookRepository.findAll();
 
-        assertThat(returnedBooks).isNotNull().hasSize(3)
-            .allMatch(b -> !b.getTitle().isEmpty())
-            .allMatch(b -> b.getAuthor() != null)
-            .allMatch(b -> b.getGenres() != null && !b.getGenres().isEmpty());
-
-        returnedBooks.forEach(book -> log.info("Books: {}", book));
+        assertThat(returnedBooks).isNotNull().extracting(
+            Book::getTitle,
+            b -> b.getAuthor().getFullName(),
+            b -> b.getGenres().stream().map(Genre::getName).toList()
+        ).containsExactly(
+            tuple("BookTitle_1", "Author_1", List.of("Genre_1", "Genre_2")),
+            tuple("BookTitle_2", "Author_2", List.of("Genre_3", "Genre_4")),
+            tuple("BookTitle_3", "Author_3", List.of("Genre_5", "Genre_6"))
+        );
     }
 
     @DisplayName("должен сохранять новую книгу")
@@ -71,8 +72,6 @@ class JpaBookRepositoryTest {
 
         assertThat(savedBook).usingRecursiveComparison().ignoringExpectedNullFields()
             .isEqualTo(expectedBook).isNotNull();
-
-        log.info("Saved book: {}", savedBook);
     }
 
     @DisplayName("должен сохранять измененную книгу")
@@ -89,8 +88,6 @@ class JpaBookRepositoryTest {
             .matches(b -> b.getId() > 0)
             .matches(b -> b.getTitle().equals("New Title"))
             .usingRecursiveComparison().ignoringExpectedNullFields().isEqualTo(expectedBook).isNotNull();
-
-        log.info("Updated book: {}", returnedBook);
     }
 
     @DisplayName("должен удалять книгу по id ")

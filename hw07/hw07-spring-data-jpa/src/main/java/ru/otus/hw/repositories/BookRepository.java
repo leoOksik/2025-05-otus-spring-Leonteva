@@ -11,12 +11,10 @@ import java.util.Optional;
 public interface BookRepository extends JpaRepository<Book, Long> {
 
     @EntityGraph(value = "author-entity-graph")
-    @NonNull
     @Override
     Optional<Book> findById(@NonNull Long id);
 
     @EntityGraph(value = "author-entity-graph")
-    @NonNull
     @Override
     List<Book> findAll();
 }

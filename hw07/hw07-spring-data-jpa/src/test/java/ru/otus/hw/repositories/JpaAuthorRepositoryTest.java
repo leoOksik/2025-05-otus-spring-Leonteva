@@ -1,6 +1,5 @@
 package ru.otus.hw.repositories;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +11,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Репозиторий на основе JPA для работы с авторами")
 @DataJpaTest
-@Slf4j
 public class JpaAuthorRepositoryTest {
 
     private static final Long GET_AUTHOR_ID = 1L;
@@ -40,7 +38,5 @@ public class JpaAuthorRepositoryTest {
 
         assertThat(returnedAuthors).isNotNull().hasSize(3)
             .allMatch(a -> a.getFullName() != null && !a.getFullName().isBlank());
-
-        returnedAuthors.forEach(author -> log.info("Authors: {}", author));
     }
 }

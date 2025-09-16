@@ -1,6 +1,5 @@
 package ru.otus.hw.repositories;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +14,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Репозиторий на основе JPA для работы с комментариями")
 @DataJpaTest
-@Slf4j
 public class JpaCommentRepositoryTest {
 
     private static final Long GET_COMMENT_ID = 1L;
@@ -48,8 +46,6 @@ public class JpaCommentRepositoryTest {
             .allMatch(c -> c.getText() != null && !c.getText().isBlank())
             .allMatch(c -> List.of("Comment_1_1", "Comment_1_2").contains(c.getText()))
             .allMatch(c -> c.getBook() != null);
-
-        returnedComments.forEach(comment -> log.info("Comments: {}", comment));
     }
 
     @Test
@@ -68,8 +64,6 @@ public class JpaCommentRepositoryTest {
             .matches(c -> c.getText() != null && c.getText().equals("text_comment_new"))
             .matches(c -> c.getBook() != null)
             .usingRecursiveComparison().ignoringExpectedNullFields().isEqualTo(expectedComment).isNotNull();
-
-        log.info("Saved comment: {}", savedComment);
     }
 
     @Test
@@ -86,8 +80,6 @@ public class JpaCommentRepositoryTest {
             .matches(b -> b.getId() > 0)
             .matches(b -> b.getText().equals("New comment"))
             .usingRecursiveComparison().ignoringExpectedNullFields().isEqualTo(expectedComment).isNotNull();
-
-        log.info("Updated comment: {}", returnedComment);
     }
 
     @Test

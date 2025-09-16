@@ -1,6 +1,5 @@
 package ru.otus.hw.repositories;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +13,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Репозиторий на основе JPA для работы с жанрами")
 @DataJpaTest
-@Slf4j
 public class JpaGenreRepositoryTest {
 
     @Autowired
@@ -27,8 +25,6 @@ public class JpaGenreRepositoryTest {
 
         assertThat(returnedGenres).isNotNull().hasSize(6)
             .allMatch(g -> g.getName() != null && !g.getName().isBlank());
-
-        returnedGenres.forEach(author -> log.info("Genres: {}", returnedGenres));
     }
 
     @Test
@@ -44,7 +40,5 @@ public class JpaGenreRepositoryTest {
         assertThat(returnedGenresByIds).isNotNull().hasSize(3)
             .allMatch(g -> g.getName() != null && !g.getName().isBlank())
             .allMatch(g -> List.of("Genre_2", "Genre_4", "Genre_6").contains(g.getName()));
-
-        returnedGenres.forEach(author -> log.info("Genres by Ids: {}", returnedGenresByIds));
     }
 }
