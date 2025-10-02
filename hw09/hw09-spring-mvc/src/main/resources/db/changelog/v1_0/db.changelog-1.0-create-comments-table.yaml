@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1.0-create-comments-table
+      author: oksana
+      changes:
+        - createTable:
+            tableName: comments
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: text
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: book_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: comments
+            baseColumnNames: book_id
+            constraintName: fk_comment_book
+            referencedTableName: books
+            referencedColumnNames: id
+            onDelete: CASCADE
