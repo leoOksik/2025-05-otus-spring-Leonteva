@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Book list</title>
+    <style>
+        body {
+            padding: 50px;
+        }
+
+        .books {
+            border: 1px solid steelblue;
+            width: 300px;
+            border-collapse: collapse;
+        }
+
+        .books tr td, th {
+            padding: 5px;
+            border: 1px solid steelblue;
+        }
+
+        .books td:last-child, td:first-child {
+            width: 50px;
+        }
+        ul {
+            padding: 20px;
+        }
+        .list {
+          margin: 30px
+        }
+    </style>
+</head>
+<body>
+<a class="list" th:href="@{/authors}">Author list</a>
+
+<h3>Books:</h3>
+<a th:href="@{/books/create}">Create book</a>
+<table class="books">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Genres</th>
+        <th colspan="3">Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="book : ${books}" th:object="${book}">
+        <td th:text="*{id}"></td>
+        <td th:text="*{title}"></td>
+        <td th:text="*{author.fullName}"></td>
+        <td>
+            <ul >
+                <li th:each="genre : ${book.genres}" th:text="${genre.name}"></li>
+            </ul>
+        </td>
+        <td>
+            <a href="comment-list.html" th:href="@{/comments/book(id=*{id})}">Show comments</a>
+        </td>
+        <td>
+            <a href="edit-book.html" th:href="@{/books/edit(id=*{id})}">Edit</a>
+        </td>
+        <td>
+            <form  th:method="post" th:action="@{/books/delete(id=${book.id})}">
+                <button type="submit">Delete</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

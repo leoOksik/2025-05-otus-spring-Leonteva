@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Comment list</title>
+    <style>
+        body {
+            padding: 50px;
+        }
+
+        .books {
+            border: 1px solid steelblue;
+            width: 300px;
+            border-collapse: collapse;
+        }
+
+        .books tr td, th {
+            padding: 5px;
+            border: 1px solid steelblue;
+        }
+
+        .books td:last-child, td:first-child {
+            width: 50px;
+        }
+        ul {
+            padding: 20px;
+        }
+        .list {
+          margin: 30px
+        }
+    </style>
+</head>
+<body>
+<a class="list" th:href="@{/books}">Book list</a>
+
+<h3>Comments:</h3>
+<table class="books">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Text</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="comment : ${comments}" th:object="${comment}">
+        <td th:text="*{id}"></td>
+        <td th:text="*{text}"></td>
+        <td>
+            <form  th:method="post" th:action="@{/comments/delete(id=${comment.id})}">
+                <button type="submit">Delete</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>
