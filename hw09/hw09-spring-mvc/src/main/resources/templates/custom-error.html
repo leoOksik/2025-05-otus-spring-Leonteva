@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>List of all persons</title>
+    <style>
+        body {
+            padding: 20px;
+        }
+
+        .error-container {
+            position: relative;
+        }
+        .error-text {
+            position: absolute;
+            color: red;
+            font-size: 40px;
+        }
+
+        img {
+            width: 350px;
+            height: 350px;
+        }
+
+    </style>
+
+</head>
+<body>
+<div class="container">
+    <img th:src="@{/not_found.jpeg}" alt="Not Found" class="error-image"/>
+    <span class="error-text" th:text="${errorText}">Error text</span>
+</div>
+</body>
+</html>
