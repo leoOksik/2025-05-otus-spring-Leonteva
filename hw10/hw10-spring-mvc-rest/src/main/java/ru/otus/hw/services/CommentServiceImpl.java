@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -21,44 +20,47 @@ public class CommentServiceImpl implements CommentService {
     private final CommentMapper commentMapper;
 
     @Override
-    public Optional<CommentDto> findById(Long id) {
+    public CommentDto findById(Long id) {
         Objects.requireNonNull(id, "Id must not be null");
-        return commentRepository.findById(id).map(commentMapper::toDto);
+        return commentRepository.findById(id).map(commentMapper::toDto)
+            .orElseThrow(() -> new NotFoundException("Comment not found"));
     }
 
     @Override
-    public List<CommentDto> findByBookId(Long id) {
-        Objects.requireNonNull(id, "Id must not be null");
-        return commentRepository.findByBookId(id).stream().map(commentMapper::toDto).toList();
+    public List<CommentDto> findByBookId(Long bookId) {
+        Objects.requireNonNull(bookId, "BookId must not be null");
+        return commentRepository.findByBookId(bookId).stream().map(commentMapper::toDto).toList();
     }
 
     @Transactional
     @Override
     public CommentDto insert(CommentDto commentDto) {
-        Comment comment = commentMapper.toEntity(commentDto);
-        commentRepository.save(comment);
-        return commentMapper.toDto(comment);
+        final Comment comment = commentMapper.toEntity(commentDto);
+        final Comment savedComment = commentRepository.save(comment);
+        return commentMapper.toDto(savedComment);
     }
 
     @Transactional
     @Override
-    public CommentDto update(CommentDto commentDto) {
-        if (!commentRepository.existsById(commentDto.getId())) {
-            throw new NotFoundException("Comment not found");
-        }
-        Comment comment = commentMapper.toEntity(commentDto);
-        commentRepository.save(comment);
-        return commentMapper.toDto(comment);
-
+    public CommentDto update(Long id, CommentDto commentDto) {
+        checkExistingComment(id);
+        final Comment updatedComment = commentMapper.toEntity(commentDto);
+        updatedComment.setId(id);
+        final Comment savedComment = commentRepository.save(updatedComment);
+        return commentMapper.toDto(savedComment);
     }
 
     @Transactional
     @Override
     public void deleteById(Long id) {
+        checkExistingComment(id);
+        commentRepository.deleteById(id);
+    }
+
+    private void checkExistingComment(Long id) {
         Objects.requireNonNull(id, "Id must not be null");
         if (!commentRepository.existsById(id)) {
             throw new NotFoundException("Comment not found");
         }
-        commentRepository.deleteById(id);
     }
 }

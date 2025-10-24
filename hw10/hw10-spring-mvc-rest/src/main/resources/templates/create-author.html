@@ -48,7 +48,7 @@
 <script>
     async function saveAuthor() {
         const nameInput = document.getElementById("author-name-input");
-        const author = { fullName: nameInput.value };
+        const author = { fullName: nameInput.Value };
 
         try {
             const resp = await fetch("/api/v1/authors", {

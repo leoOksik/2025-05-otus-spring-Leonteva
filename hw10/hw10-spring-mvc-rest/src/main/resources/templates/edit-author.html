@@ -74,7 +74,11 @@
     });
 
     async function updateAuthor() {
-        const author = { fullName: nameInput.value };
+        const authorName = document.getElementById("author-name-input").value.trim();
+        const author = {
+            id: Number(authorId),
+            fullName: authorName
+        };
 
         try {
             const resp = await fetch(`/api/v1/authors/${authorId}`, {

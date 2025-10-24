@@ -21,7 +21,7 @@ public class AuthorServiceImplTest {
     @Test
     @DisplayName("должен загружать автора по id")
     void shouldReturnAuthorById() {
-        var author = authorService.findById(GET_AUTHOR_ID).orElseThrow();
+        var author = authorService.findById(GET_AUTHOR_ID);
 
         assertDoesNotThrow(() -> {
             assertThat(author).isNotNull();

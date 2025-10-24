@@ -24,7 +24,7 @@ class CommentServiceImplTest {
     @Test
     @DisplayName("должен загружать комментарий по id")
     void shouldReturnCommentById() {
-        var comment = commentService.findById(GET_COMMENT_ID).orElseThrow();
+        var comment = commentService.findById(GET_COMMENT_ID);
 
         assertDoesNotThrow(() -> {
             assertThat(comment).isNotNull();

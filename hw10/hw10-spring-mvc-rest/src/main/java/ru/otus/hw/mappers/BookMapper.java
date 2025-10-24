@@ -54,6 +54,6 @@ public interface BookMapper {
             Genre genre = new Genre();
             genre.setId(id);
             return genre;
-        }).collect(Collectors.toList());
+        }).toList();
     }
 }

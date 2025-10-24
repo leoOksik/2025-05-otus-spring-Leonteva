@@ -16,7 +16,6 @@ import ru.otus.hw.services.CommentService;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
@@ -60,7 +59,7 @@ public class CommentControllerTest {
     @DisplayName("должен удалять существующий комментарий")
     @Test
     void shouldCorrectlyDeleteComment() throws Exception {
-        given(commentService.findById(2L)).willReturn(Optional.of(comments.get(1)));
+        given(commentService.findById(2L)).willReturn(comments.get(1));
         doNothing().when(commentService).deleteById(2L);
         mvc.perform(delete("/api/v1/comments/2")).andExpect(status().isNoContent());
     }

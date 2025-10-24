@@ -11,7 +11,6 @@ import ru.otus.hw.repositories.AuthorRepository;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -26,37 +25,41 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
     @Override
-    public Optional<AuthorDto> findById(Long id) {
+    public AuthorDto findById(Long id) {
         Objects.requireNonNull(id, "Id must not be null");
-        return authorRepository.findById(id).map(authorMapper::toDto);
+        return authorRepository.findById(id).map(authorMapper::toDto)
+            .orElseThrow(() -> new NotFoundException("Author not found"));
     }
 
     @Transactional
     @Override
     public AuthorDto insert(AuthorDto authorDto) {
-        Author author = authorMapper.toEntity(authorDto);
-        authorRepository.save(author);
-        return authorMapper.toDto(author);
+        final Author author = authorMapper.toEntity(authorDto);
+        final Author savedAuthor = authorRepository.save(author);
+        return authorMapper.toDto(savedAuthor);
     }
 
     @Transactional
     @Override
-    public AuthorDto update(AuthorDto authorDto) {
-        if (!authorRepository.existsById(authorDto.getId())) {
-            throw new NotFoundException("Author not found");
-        }
-        Author author = authorMapper.toEntity(authorDto);
-        authorRepository.save(author);
-        return authorMapper.toDto(author);
+    public AuthorDto update(Long id, AuthorDto authorDto) {
+        checkExistingAuthor(id);
+        final Author updatedAuthor = authorMapper.toEntity(authorDto);
+        updatedAuthor.setId(id);
+        final Author savedAuthor = authorRepository.save(updatedAuthor);
+        return authorMapper.toDto(savedAuthor);
     }
 
     @Transactional
     @Override
     public void deleteById(Long id) {
+        checkExistingAuthor(id);
+        authorRepository.deleteById(id);
+    }
+
+    private void checkExistingAuthor(Long id) {
         Objects.requireNonNull(id, "Id must not be null");
         if (!authorRepository.existsById(id)) {
             throw new NotFoundException("Author not found");
         }
-        authorRepository.deleteById(id);
     }
 }

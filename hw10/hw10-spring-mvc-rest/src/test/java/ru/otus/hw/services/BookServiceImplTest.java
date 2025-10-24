@@ -22,7 +22,7 @@ public class BookServiceImplTest {
     @Test
     @DisplayName("должен загружать книгу по id без LazyInitializationException")
     void shouldReturnBookByIdWithoutLazyException() {
-        var book = bookService.findById(GET_BOOK_ID).orElseThrow();
+        var book = bookService.findById(GET_BOOK_ID);
 
         assertThat(book).isNotNull();
         assertDoesNotThrow(() -> {

@@ -1,10 +1,11 @@
 package ru.otus.hw.controllers;
 
-import jakarta.validation.Valid;
+import jakarta.validation.groups.Default;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 import ru.otus.hw.dto.BookRequestDto;
 import ru.otus.hw.dto.BookResponseDto;
-import ru.otus.hw.exceptions.NotFoundException;
 import ru.otus.hw.services.BookService;
+import ru.otus.hw.services.ValidationId;
 
 import java.util.List;
 
@@ -26,7 +27,8 @@ public class BookController {
     private final BookService bookService;
 
     @PostMapping
-    public ResponseEntity<BookResponseDto> createBook(@Valid @RequestBody BookRequestDto bookRequestDto) {
+    public ResponseEntity<BookResponseDto> createBook(@Validated({Default.class, ValidationId.OnCreate.class})
+                                                      @RequestBody BookRequestDto bookRequestDto) {
         BookResponseDto createdBook = bookService.insert(bookRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdBook);
     }
@@ -39,23 +41,20 @@ public class BookController {
 
     @GetMapping("/{id}")
     public ResponseEntity<BookResponseDto> getBook(@PathVariable Long id) {
-        final BookResponseDto book = bookService.findById(id)
-            .orElseThrow(() -> new NotFoundException("Book not found"));
+        final BookResponseDto book = bookService.findById(id);
         return ResponseEntity.ok(book);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<BookResponseDto> editBook(@PathVariable Long id,
-                                                    @Valid @RequestBody BookRequestDto bookRequestDto) {
-        bookService.findById(id).orElseThrow(() -> new NotFoundException("Book not found"));
-        bookRequestDto.setId(id);
-        final BookResponseDto editedBook = bookService.update(bookRequestDto);
+                                                    @Validated({Default.class, ValidationId.OnUpdate.class})
+                                                    @RequestBody BookRequestDto bookRequestDto) {
+        final BookResponseDto editedBook = bookService.update(id, bookRequestDto);
         return ResponseEntity.ok(editedBook);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> deleteBook(@PathVariable Long id) {
-        bookService.findById(id).orElseThrow(() -> new NotFoundException("Book not found"));
         bookService.deleteById(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

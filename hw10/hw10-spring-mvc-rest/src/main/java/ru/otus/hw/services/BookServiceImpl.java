@@ -11,7 +11,6 @@ import ru.otus.hw.mappers.BookMapper;
 import ru.otus.hw.repositories.BookRepository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Objects;
 
 @RequiredArgsConstructor
@@ -23,9 +22,10 @@ public class BookServiceImpl implements BookService {
     private final BookMapper bookMapper;
 
     @Override
-    public Optional<BookResponseDto> findById(Long id) {
+    public BookResponseDto findById(Long id) {
         Objects.requireNonNull(id, "Id must not be null");
-        return bookRepository.findById(id).map(bookMapper::toResponseDto);
+        return bookRepository.findById(id).map(bookMapper::toResponseDto)
+            .orElseThrow(() -> new NotFoundException("Book not found"));
     }
 
     @Override
@@ -36,29 +36,32 @@ public class BookServiceImpl implements BookService {
     @Transactional
     @Override
     public BookResponseDto insert(BookRequestDto bookRequestDto) {
-        Book book = bookMapper.toEntity(bookRequestDto);
-        bookRepository.save(book);
-        return bookMapper.toResponseDto(book);
+        final Book book = bookMapper.toEntity(bookRequestDto);
+        final Book savedBook = bookRepository.save(book);
+        return bookMapper.toResponseDto(savedBook);
     }
 
     @Transactional
     @Override
-    public BookResponseDto update(BookRequestDto bookRequestDto) {
-        if (!bookRepository.existsById(bookRequestDto.getId())) {
-            throw new NotFoundException("Book not found");
-        }
-        Book book = bookMapper.toEntity(bookRequestDto);
-        bookRepository.save(book);
-        return bookMapper.toResponseDto(book);
+    public BookResponseDto update(Long id, BookRequestDto bookRequestDto) {
+        checkExistingBook(id);
+        final Book updatedBook = bookMapper.toEntity(bookRequestDto);
+        updatedBook.setId(id);
+        final Book savedBook = bookRepository.save(updatedBook);
+        return bookMapper.toResponseDto(savedBook);
     }
 
     @Transactional
     @Override
     public void deleteById(Long id) {
+        checkExistingBook(id);
+        bookRepository.deleteById(id);
+    }
+
+    private void checkExistingBook(Long id) {
         Objects.requireNonNull(id, "Id must not be null");
         if (!bookRepository.existsById(id)) {
-            throw new NotFoundException("Book not found");
+            throw new NotFoundException("Author not found");
         }
-        bookRepository.deleteById(id);
     }
 }

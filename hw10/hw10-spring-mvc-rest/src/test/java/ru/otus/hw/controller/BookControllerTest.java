@@ -13,17 +13,19 @@ import ru.otus.hw.dto.AuthorDto;
 import ru.otus.hw.dto.BookRequestDto;
 import ru.otus.hw.dto.BookResponseDto;
 import ru.otus.hw.dto.GenreDto;
+import ru.otus.hw.exceptions.NotFoundException;
 import ru.otus.hw.mappers.BookMapper;
 import ru.otus.hw.services.AuthorService;
 import ru.otus.hw.services.BookService;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -69,8 +71,8 @@ public class BookControllerTest {
     @DisplayName("должен возвращать книгу по id")
     @Test
     void shouldReturnCorrectlyBookById() throws Exception {
-        BookResponseDto book =  new BookResponseDto(1L, "Title_test_1", new AuthorDto(), new ArrayList<>());
-        given(bookService.findById(1L)).willReturn(Optional.of(book));
+        BookResponseDto book = new BookResponseDto(1L, "Title_test_1", new AuthorDto(), new ArrayList<>());
+        given(bookService.findById(1L)).willReturn(book);
 
         mvc.perform(get("/api/v1/books/{id}", 1L))
             .andExpect(status().isOk())
@@ -82,10 +84,10 @@ public class BookControllerTest {
     void shouldCorrectlySaveNewBook() throws Exception {
         AuthorDto author = new AuthorDto(1L, "Author_test_1");
 
-        BookRequestDto requestDto = new BookRequestDto(1L, "Title_test_1", 1L, Set.of());
+        BookRequestDto requestDto = new BookRequestDto(null, "Title_test_1", 1L, Set.of());
         BookResponseDto responseDto = new BookResponseDto(1L, "Title_test_1", author, new ArrayList<>());
 
-        given(bookService.insert(any())).willReturn(responseDto);
+        given(bookService.insert(any(BookRequestDto.class))).willReturn(responseDto);
 
         String expectedRequest = mapper.writeValueAsString(requestDto);
         String expectedResponse = mapper.writeValueAsString(responseDto);
@@ -105,8 +107,7 @@ public class BookControllerTest {
         BookRequestDto requestDto = new BookRequestDto(1L, "Title_test_1", 1L, Set.of());
         BookResponseDto responseDto = new BookResponseDto(1L, "Title_test_1", author, new ArrayList<>());
 
-        given(bookService.findById(1L)).willReturn(Optional.of(responseDto));
-        given(bookService.update(any())).willReturn(responseDto);
+        given(bookService.update(eq(1L), any(BookRequestDto.class))).willReturn(responseDto);
 
         String expectedRequest = mapper.writeValueAsString(requestDto);
         String expectedResponse = mapper.writeValueAsString(responseDto);
@@ -121,23 +122,32 @@ public class BookControllerTest {
     @DisplayName("должен удалять существующую книгу")
     @Test
     void shouldCorrectlyDeleteBook() throws Exception {
-        given(bookService.findById(2L)).willReturn(Optional.of(books.get(1)));
         doNothing().when(bookService).deleteById(2L);
-        mvc.perform(delete("/api/v1/books/2")).andExpect(status().isNoContent());
+        mvc.perform(delete("/api/v1/books/{id}", 2L))
+            .andExpect(status().isNoContent());
     }
 
-    @DisplayName("должен возвращать статуc 404 и сообщение \"Book not found\", если книга не найдена")
+    @DisplayName("должен возвращать статуc 404 и сообщение \"Book not found\", " +
+        "если книга не найдена по переданному id при обновлении")
     @Test
-    void shouldReturnExpectedErrorWhenBooksNotFound() throws Exception {
-        given(bookService.findById(5L)).willReturn(Optional.empty());
+    void shouldReturnExpectedErrorWhenBooksNotFoundForUpdate() throws Exception {
+        given(bookService.update(eq(5L), any(BookRequestDto.class)))
+            .willThrow(new NotFoundException("Book not found"));
 
-        mvc.perform(put("/api/v1/books/5")
+        mvc.perform(put("/api/v1/books/{id}", 5L)
                 .contentType(APPLICATION_JSON)
-                .content("{\"title\": \"Test Title\", \"authorId\": 1, \"genreIds\": []}"))
+                .content("{\"id\": 5, \"title\": \"Test Title\", \"authorId\": 1, \"genreIds\": []}"))
             .andExpect(status().isNotFound())
             .andExpect(content().string("Book not found"));
+    }
 
-        mvc.perform(delete("/api/v1/books/5"))
+    @DisplayName("должен возвращать статуc 404 и сообщение \"Book not found\", " +
+        "если книга не найдена по переданному id при удалении")
+    @Test
+    void shouldReturnExpectedErrorWhenBooksNotFoundForDelete() throws Exception {
+        willThrow(new NotFoundException("Book not found")).given(bookService).deleteById(5L);
+
+        mvc.perform(delete("/api/v1/books/{id}", 5L))
             .andExpect(status().isNotFound())
             .andExpect(content().string("Book not found"));
     }
@@ -147,7 +157,7 @@ public class BookControllerTest {
         List<GenreDto> genres = new ArrayList<>();
 
         return List.of(
-            new BookResponseDto(1L, "Title_test_1",author, genres),
+            new BookResponseDto(1L, "Title_test_1", author, genres),
             new BookResponseDto(2L, "Title_test_2", author, genres));
     }
 }

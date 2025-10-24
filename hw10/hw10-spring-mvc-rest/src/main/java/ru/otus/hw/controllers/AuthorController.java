@@ -1,9 +1,10 @@
 package ru.otus.hw.controllers;
 
-import jakarta.validation.Valid;
+import jakarta.validation.groups.Default;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,8 +14,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import ru.otus.hw.dto.AuthorDto;
-import ru.otus.hw.exceptions.NotFoundException;
 import ru.otus.hw.services.AuthorService;
+import ru.otus.hw.services.ValidationId;
 
 import java.util.List;
 
@@ -26,7 +27,9 @@ public class AuthorController {
     private final AuthorService authorService;
 
     @PostMapping
-    public ResponseEntity<AuthorDto> addAuthor(@Valid @RequestBody AuthorDto authorDto) {
+
+    public ResponseEntity<AuthorDto> addAuthor(@Validated({Default.class, ValidationId.OnCreate.class})
+                                                   @RequestBody AuthorDto authorDto) {
         final AuthorDto author = authorService.insert(authorDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(author);
     }
@@ -39,22 +42,20 @@ public class AuthorController {
 
     @GetMapping("/{id}")
     public ResponseEntity <AuthorDto> getAuthor(@PathVariable Long id) {
-        final AuthorDto author =  authorService.findById(id)
-            .orElseThrow(() -> new NotFoundException("Author not found"));
+        final AuthorDto author =  authorService.findById(id);
         return ResponseEntity.ok(author);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AuthorDto> editAuthor(@PathVariable Long id, @Valid @RequestBody AuthorDto authorDto) {
-        authorService.findById(id).orElseThrow(() -> new NotFoundException("Author not found"));
-        authorDto.setId(id);
-        final AuthorDto updatedAuthor = authorService.update(authorDto);
+    public ResponseEntity<AuthorDto> editAuthor(@PathVariable Long id,
+                                                @Validated({Default.class, ValidationId.OnUpdate.class})
+                                                @RequestBody AuthorDto authorDto) {
+        final AuthorDto updatedAuthor = authorService.update(id, authorDto);
         return ResponseEntity.ok(updatedAuthor);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> deleteAuthor(@PathVariable Long id) {
-        authorService.findById(id).orElseThrow(() -> new NotFoundException("Author not found"));
         authorService.deleteById(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
