@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Comment list</title>
+    <style>
+        body {
+            padding: 50px;
+        }
+
+        .comments {
+            border: 1px solid steelblue;
+            width: 300px;
+            border-collapse: collapse;
+        }
+
+        .comments tr td, th {
+            padding: 5px;
+            border: 1px solid steelblue;
+        }
+
+        .comments td:last-child, td:first-child {
+            width: 50px;
+        }
+        ul {
+            padding: 20px;
+        }
+        .list {
+          margin: 30px
+        }
+    </style>
+</head>
+<body>
+<a class="list" th:href="@{/books}">Book list</a>
+<h3>Comments:</h3>
+
+<table class="comments">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Text</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+
+<script>
+    window.addEventListener("DOMContentLoaded", function () {
+        const tbody = document.querySelector(".comments tbody");
+
+                const params = new URLSearchParams(window.location.search);
+        const bookId = params.get("id");
+
+       fetch(`/api/v1/comments/book/${bookId}`)
+            .then(response => {
+                if (!response.ok) throw new Error("Failed to fetch authors");
+                return response.json();
+            })
+            .then(authors => {
+                tbody.innerHTML = "";
+
+                authors.forEach(comment => {
+                    const tr = document.createElement("tr");
+
+                    tr.innerHTML = `
+                        <td>${comment.id}</td>
+                        <td>${comment.text}</td>
+                        <td><a href="#" data-id="${comment.id}" class="delete">Delete</a></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                tbody.querySelectorAll(".delete").forEach(btn => {
+                    btn.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        const id = btn.getAttribute("data-id");
+                        const tr = btn.closest("tr");
+
+                        if (confirm("Confirm delete this comment")) {
+                            fetch(`/api/v1/comments/${id}`, { method: "DELETE" })
+                                .then(resp => {
+                                    if (resp.ok) {
+                                        tr.remove();
+                                    } else {
+                                        resp.text().then(errorMessage => {
+                                            alert(errorMessage);
+                                        });
+                                    }
+                                })
+                                 .catch(() => alert("Something wrong"));
+                        }
+                    });
+                });
+            })
+            .catch(err => {
+               tbody.innerHTML = "<tr><td>Error loading</td></tr>";
+            });
+    });
+</script>
+</body>
+</html>

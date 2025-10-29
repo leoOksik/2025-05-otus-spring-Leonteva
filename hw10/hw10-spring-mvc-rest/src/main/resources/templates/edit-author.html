@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Edit author</title>
+    <style>
+        body {
+            padding: 50px;
+        }
+
+        label {
+            display: inline-block;
+            width: 100px;
+        }
+
+        input:read-only {
+            background: lightgray;
+        }
+
+        .row {
+            margin-top: 10px;
+        }
+        .errors {
+            margin-left: 100px;
+            font-size: 12px;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<form id="edit-form" action="edit-author.html" th:method="put">
+    <h3>Author Info:</h3>
+
+    <div class="row">
+        <label for="id-input">ID:</label>
+        <input id="id-input" type="text" readonly="readonly"/>
+    </div>
+
+    <div class="row">
+        <label for="author-name-input">Full name:</label>
+        <input id="author-name-input" type="text"/>
+    </div>
+
+    <div class="row">
+        <button type="button" onclick="updateAuthor()">Save</button>
+        <a href="author-list.html" th:href="@{/authors}">
+            <button type="button">Cancel</button>
+        </a>
+    </div>
+</form>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const authorId = params.get("id");
+
+    const idInput = document.getElementById("id-input");
+    const nameInput = document.getElementById("author-name-input");
+
+    window.addEventListener("DOMContentLoaded", async () => {
+
+        try {
+            const response = await fetch(`/api/v1/authors/${authorId}`);
+            if (!response.ok) {
+                throw new Error("Failed loading author");
+            }
+
+            const author = await response.json();
+            idInput.value = author.id;
+            nameInput.value = author.fullName;
+        } catch (err) {
+            alert(err.message);
+        }
+    });
+
+    async function updateAuthor() {
+        const authorName = document.getElementById("author-name-input").value.trim();
+        const author = {
+            id: Number(authorId),
+            fullName: authorName
+        };
+
+        try {
+            const resp = await fetch(`/api/v1/authors/${authorId}`, {
+                method: 'PUT',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(author)
+            });
+
+            if (resp.ok) {
+                window.location.href = "/authors";
+            } else {
+                const errorMessage = await resp.text();
+                alert(errorMessage);
+            }
+        } catch (e) {
+               alert("Something wrong");
+        }
+    }
+</script>
+</body>
+</html>
