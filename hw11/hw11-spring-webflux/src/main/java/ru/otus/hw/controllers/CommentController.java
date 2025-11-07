@@ -1,18 +1,19 @@
 package ru.otus.hw.controllers;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.otus.hw.dto.CommentDto;
 import ru.otus.hw.services.CommentService;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/comments")
 public class CommentController {
@@ -20,12 +21,13 @@ public class CommentController {
     private final CommentService commentService;
 
     @GetMapping("/book/{bookId}")
-    public Mono<ResponseEntity<Flux<CommentDto>>> getCommentsByBookId(@PathVariable ("bookId") Long bookId) {
-        return Mono.just(ResponseEntity.ok().body(commentService.findByBookId(bookId)));
+    public Flux<CommentDto> getCommentsByBookId(@PathVariable ("bookId") Long bookId) {
+        return commentService.findByBookId(bookId);
     }
 
     @DeleteMapping("/{id}")
-    public Mono<ResponseEntity<Void>> deleteComment(@PathVariable ("id") Long id) {
-        return commentService.deleteById(id).then(Mono.just(ResponseEntity.noContent().build()));
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public Mono<Void> deleteComment(@PathVariable ("id") Long id) {
+        return commentService.deleteById(id);
     }
 }
