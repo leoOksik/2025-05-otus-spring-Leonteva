@@ -1,0 +1,42 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1.1-insert-into-comments
+      author: oksana
+      comment: "Insert comments for testing"
+      changes:
+        - insert:
+            tableName: comments
+            columns:
+              - column:
+                  name: text
+                  value: "Comment_1"
+              - column:
+                  name: book_id
+                  valueNumeric: 1
+        - insert:
+            tableName: comments
+            columns:
+              - column:
+                  name: text
+                  value: "Comment_2"
+              - column:
+                  name: book_id
+                  valueNumeric: 1
+        - insert:
+            tableName: comments
+            columns:
+              - column:
+                  name: text
+                  value: "Comment_3"
+              - column:
+                  name: book_id
+                  valueNumeric: 2
+        - insert:
+            tableName: comments
+            columns:
+              - column:
+                  name: text
+                  value: "Comment_4"
+              - column:
+                  name: book_id
+                  valueNumeric: 3

@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1.0-create-genres-table
+      author: oksana
+      changes:
+        - createTable:
+            tableName: genres
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
