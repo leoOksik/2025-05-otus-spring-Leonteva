@@ -23,6 +23,7 @@ import java.util.List;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -50,7 +51,7 @@ public class CommentControllerTest {
     void setUp() {
         Book book = new Book(1L, "Title_test", new Author(), new ArrayList<>());
         comments = List.of(new CommentDto(1L, "Comment_1", book.getId()),
-            new CommentDto(2L, "Comment_2",book.getId()));
+            new CommentDto(2L, "Comment_2", book.getId()));
     }
 
     @DisplayName("должен перенаправлять на страницу аутентификации при запросе получения комментариев по id книги")
@@ -75,7 +76,8 @@ public class CommentControllerTest {
     @DisplayName("должен перенаправлять на страницу аутентификации при запросе удаления комментария")
     @Test
     void shouldRedirectToLoginPageFromDeleteComment() throws Exception {
-        mvc.perform(delete("/api/v1/comments/2"))
+        mvc.perform(delete("/api/v1/comments/2")
+                .with(csrf()).param("user", "user"))
             .andExpect(status().is3xxRedirection());
     }
 
@@ -85,6 +87,8 @@ public class CommentControllerTest {
     void shouldCorrectlyDeleteComment() throws Exception {
         given(commentService.findById(2L)).willReturn(comments.get(1));
         doNothing().when(commentService).deleteById(2L);
-        mvc.perform(delete("/api/v1/comments/2")).andExpect(status().isNoContent());
+        mvc.perform(delete("/api/v1/comments/2")
+                .with(csrf()).param("user", "user"))
+            .andExpect(status().isNoContent());
     }
 }

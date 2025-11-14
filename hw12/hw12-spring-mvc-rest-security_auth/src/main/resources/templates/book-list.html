@@ -31,6 +31,8 @@
     </style>
 </head>
 <body>
+<input type="hidden" id="csrf" th:value="${_csrf.token}"/>
+
 <a class="list" th:href="@{/authors}">Author list</a>
 
 <h3>Books:</h3>
@@ -51,6 +53,7 @@
 <script>
     window.addEventListener("DOMContentLoaded", function () {
         const tbody = document.querySelector(".books tbody");
+        const csrf = document.getElementById("csrf").value.trim();
 
         fetch("/api/v1/books")
             .then(response => {
@@ -83,7 +86,12 @@
                         const tr = btn.closest("tr");
 
                         if (confirm("Confirm delete this book")) {
-                            fetch(`/api/v1/books/${id}`, { method: "DELETE" })
+                            fetch(`/api/v1/books/${id}`, {
+                                method: "DELETE" ,
+                                headers: {
+                                    'X-CSRF-TOKEN': csrf
+                                }
+                            })
                                 .then(resp => {
                                     if (resp.ok) {
                                         tr.remove();

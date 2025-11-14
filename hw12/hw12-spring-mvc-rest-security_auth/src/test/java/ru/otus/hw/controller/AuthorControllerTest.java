@@ -26,6 +26,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -99,7 +100,8 @@ public class AuthorControllerTest {
     @DisplayName("должен перенаправлять на страницу аутентификации при запросе сохранения нового автора")
     @Test
     void shouldRedirectToLoginPageFromPostAuthor() throws Exception {
-        mvc.perform(post("/api/v1/authors"))
+        mvc.perform(post("/api/v1/authors")
+                .with(csrf()).param("user", "user"))
             .andExpect(status().is3xxRedirection());
     }
 
@@ -113,7 +115,8 @@ public class AuthorControllerTest {
 
         mvc.perform(post("/api/v1/authors")
                 .contentType(APPLICATION_JSON)
-                .content(expectedResult))
+                .content(expectedResult)
+                .with(csrf()).param("user", "user"))
             .andExpect(status().isCreated())
             .andExpect(content().json(expectedResult));
     }
@@ -121,7 +124,8 @@ public class AuthorControllerTest {
     @DisplayName("должен перенаправлять на страницу аутентификации при запросе редактирования автора")
     @Test
     void shouldRedirectToLoginPageFromPutAuthor() throws Exception {
-        mvc.perform(put("/api/v1/authors/{id}", 1L))
+        mvc.perform(put("/api/v1/authors/{id}", 1L)
+                .with(csrf()).param("user", "user"))
             .andExpect(status().is3xxRedirection());
     }
 
@@ -135,7 +139,8 @@ public class AuthorControllerTest {
 
         mvc.perform(put("/api/v1/authors/{id}", 1L)
                 .contentType(APPLICATION_JSON)
-                .content(expectedResult))
+                .content(expectedResult)
+                .with(csrf()).param("user", "user"))
             .andExpect(status().isOk())
             .andExpect(content().json(expectedResult));
     }
@@ -143,7 +148,8 @@ public class AuthorControllerTest {
     @DisplayName("должен перенаправлять на страницу аутентификации при запросе удаления автора")
     @Test
     void shouldRedirectToLoginPageFromDeleteAuthor() throws Exception {
-        mvc.perform(delete("/api/v1/authors/{id}", 2L))
+        mvc.perform(delete("/api/v1/authors/{id}", 2L)
+                .with(csrf()).param("user", "user"))
             .andExpect(status().is3xxRedirection());
     }
 
@@ -152,7 +158,8 @@ public class AuthorControllerTest {
     @Test
     void shouldCorrectlyDeleteAuthor() throws Exception {
         doNothing().when(authorService).deleteById(2L);
-        mvc.perform(delete("/api/v1/authors/{id}", 2L))
+        mvc.perform(delete("/api/v1/authors/{id}", 2L)
+                .with(csrf()).param("user", "user"))
             .andExpect(status().isNoContent());
     }
 
@@ -166,7 +173,8 @@ public class AuthorControllerTest {
 
         mvc.perform(put("/api/v1/authors/{id}", 5L)
                 .contentType(APPLICATION_JSON)
-                .content("{\"id\": 5, \"fullName\": \"Test Author\"}"))
+                .content("{\"id\": 5, \"fullName\": \"Test Author\"}")
+                .with(csrf()).param("user", "user"))
             .andExpect(status().isNotFound())
             .andExpect(content().string("Author not found"));
 
@@ -181,7 +189,8 @@ public class AuthorControllerTest {
             .given(authorService)
             .deleteById(5L);
 
-        mvc.perform(delete("/api/v1/authors/{id}", 5L))
+        mvc.perform(delete("/api/v1/authors/{id}", 5L)
+                .with(csrf()).param("user", "user"))
             .andExpect(status().isNotFound())
             .andExpect(content().string("Author not found"));
     }

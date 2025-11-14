@@ -31,6 +31,8 @@
     </style>
 </head>
 <body>
+<input type="hidden" id="csrf" th:value="${_csrf.token}"/>
+
 <a class="list" th:href="@{/books}">Book list</a>
 <h3>Comments:</h3>
 
@@ -52,6 +54,7 @@
 
                 const params = new URLSearchParams(window.location.search);
         const bookId = params.get("id");
+        const csrf = document.getElementById("csrf").value.trim();
 
        fetch(`/api/v1/comments/book/${bookId}`)
             .then(response => {
@@ -79,7 +82,12 @@
                         const tr = btn.closest("tr");
 
                         if (confirm("Confirm delete this comment")) {
-                            fetch(`/api/v1/comments/${id}`, { method: "DELETE" })
+                            fetch(`/api/v1/comments/${id}`, {
+                                method: "DELETE",
+                                headers: {
+                                    'X-CSRF-TOKEN': csrf
+                                }
+                            })
                                 .then(resp => {
                                     if (resp.ok) {
                                         tr.remove();

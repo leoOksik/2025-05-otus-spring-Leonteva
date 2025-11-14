@@ -33,6 +33,7 @@
 </head>
 <body>
 
+<input type="hidden" id="csrf" th:value="${_csrf.token}"/>
 <form id="edit-form" action="edit-book.html" th:method="put">
     <div class="row">
         <label for="id-input">ID:</label>
@@ -129,6 +130,7 @@
         const authorId = document.getElementById("author-select").value;
         const selectedGenres = Array.from(document.getElementById("genre-select").selectedOptions)
                                     .map(opt => Number(opt.value));
+        const csrf = document.getElementById("csrf").value.trim();
 
         const book = {
             id: Number(bookId),
@@ -142,7 +144,8 @@
                 method: 'PUT',
                 headers: {
                     'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrf
                 },
                 body: JSON.stringify(book)
             });

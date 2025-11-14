@@ -32,6 +32,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -107,7 +108,8 @@ public class BookControllerTest {
     @DisplayName("должен перенаправлять на страницу аутентификации при запросе сохранения новой книги")
     @Test
     void shouldRedirectToLoginPageFromPostBook() throws Exception {
-        mvc.perform(post("/api/v1/books"))
+        mvc.perform(post("/api/v1/books")
+                .with(csrf()).param("user", "user"))
             .andExpect(status().is3xxRedirection());
     }
 
@@ -127,7 +129,8 @@ public class BookControllerTest {
 
         mvc.perform(post("/api/v1/books")
                 .contentType(APPLICATION_JSON)
-                .content(expectedRequest))
+                .content(expectedRequest)
+                .with(csrf()).param("user", "user"))
             .andExpect(status().isCreated())
             .andExpect(content().json(expectedResponse));
     }
@@ -135,7 +138,8 @@ public class BookControllerTest {
     @DisplayName("должен перенаправлять на страницу аутентификации при запросе редактирования книги")
     @Test
     void shouldRedirectToLoginPageFromPutBook() throws Exception {
-        mvc.perform(put("/api/v1/books/{id}", 1L))
+        mvc.perform(put("/api/v1/books/{id}", 1L)
+                .with(csrf()).param("user", "user"))
             .andExpect(status().is3xxRedirection());
     }
 
@@ -155,7 +159,8 @@ public class BookControllerTest {
 
         mvc.perform(put("/api/v1/books/{id}", 1L)
                 .contentType(APPLICATION_JSON)
-                .content(expectedRequest))
+                .content(expectedRequest)
+                .with(csrf()).param("user", "user"))
             .andExpect(status().isOk())
             .andExpect(content().json(expectedResponse));
     }
@@ -163,7 +168,8 @@ public class BookControllerTest {
     @DisplayName("должен перенаправлять на страницу аутентификации при запросе удаления книги")
     @Test
     void shouldRedirectToLoginPageFromDeleteBook() throws Exception {
-        mvc.perform(delete("/api/v1/books/{id}", 2L))
+        mvc.perform(delete("/api/v1/books/{id}", 2L)
+                .with(csrf()).param("user", "user"))
             .andExpect(status().is3xxRedirection());
     }
 
@@ -172,7 +178,8 @@ public class BookControllerTest {
     @Test
     void shouldCorrectlyDeleteBook() throws Exception {
         doNothing().when(bookService).deleteById(2L);
-        mvc.perform(delete("/api/v1/books/{id}", 2L))
+        mvc.perform(delete("/api/v1/books/{id}", 2L)
+                .with(csrf()).param("user", "user"))
             .andExpect(status().isNoContent());
     }
 
@@ -186,7 +193,8 @@ public class BookControllerTest {
 
         mvc.perform(put("/api/v1/books/{id}", 5L)
                 .contentType(APPLICATION_JSON)
-                .content("{\"id\": 5, \"title\": \"Test Title\", \"authorId\": 1, \"genreIds\": []}"))
+                .content("{\"id\": 5, \"title\": \"Test Title\", \"authorId\": 1, \"genreIds\": []}")
+            .with(csrf()).param("user", "user"))
             .andExpect(status().isNotFound())
             .andExpect(content().string("Book not found"));
     }
@@ -198,7 +206,8 @@ public class BookControllerTest {
     void shouldReturnExpectedErrorWhenBooksNotFoundForDelete() throws Exception {
         willThrow(new NotFoundException("Book not found")).given(bookService).deleteById(5L);
 
-        mvc.perform(delete("/api/v1/books/{id}", 5L))
+        mvc.perform(delete("/api/v1/books/{id}", 5L)
+                .with(csrf()).param("user", "user"))
             .andExpect(status().isNotFound())
             .andExpect(content().string("Book not found"));
     }

@@ -17,21 +17,15 @@
         .row {
             margin-top: 10px;
         }
-        .genres-list {
-            margin-left: 100px;
-        }
         .row input[type="text"], .row select {
             width: 300px;
             box-sizing: border-box;
         }
-        .errors {
-            margin-left: 100px;
-            font-size: 12px;
-            color: red;
-        }
     </style>
 </head>
 <body>
+
+<input type="hidden" id="csrf" th:value="${_csrf.token}"/>
 
 <form id="create-form" action="create-book.html" th:method="post">
     <h3>Book Info:</h3>
@@ -114,6 +108,7 @@
         const authorId = document.getElementById("author-select").value;
         const genreSelect = document.getElementById("genre-select");
         const selectedGenres = Array.from(genreSelect.selectedOptions).map(opt => opt.value);
+        const csrf = document.getElementById("csrf").value.trim();
 
         const book = {
             title: title,
@@ -126,7 +121,8 @@
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrf
                 },
                 body: JSON.stringify(book)
             });

@@ -29,6 +29,7 @@
 </head>
 <body>
 
+<input type="hidden" id="csrf" th:value="${_csrf.token}"/>
 <form id="edit-form" action="edit-author.html" th:method="put">
     <h3>Author Info:</h3>
 
@@ -75,6 +76,7 @@
 
     async function updateAuthor() {
         const authorName = document.getElementById("author-name-input").value.trim();
+        const csrf = document.getElementById("csrf").value.trim();
         const author = {
             id: Number(authorId),
             fullName: authorName
@@ -85,7 +87,8 @@
                 method: 'PUT',
                 headers: {
                     'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrf
                 },
                 body: JSON.stringify(author)
             });
