@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Book list</title>
+    <style>
+        body {
+            padding: 50px;
+        }
+
+        .books {
+            border: 1px solid steelblue;
+            width: 300px;
+            border-collapse: collapse;
+        }
+
+        .books tr td, th {
+            padding: 5px;
+            border: 1px solid steelblue;
+        }
+
+        .books td:last-child, td:first-child {
+            width: 50px;
+        }
+        ul {
+            padding: 20px;
+        }
+        .list {
+          margin: 30px
+        }
+    </style>
+</head>
+<body>
+<input type="hidden" id="csrf" th:value="${_csrf.token}"/>
+
+<a class="list" th:href="@{/authors}">Author list</a>
+
+<h3>Books:</h3>
+<a th:href="@{/books/create}">Create book</a>
+<table class="books">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Genres</th>
+        <th colspan="3">Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+<script>
+    window.addEventListener("DOMContentLoaded", function () {
+        const tbody = document.querySelector(".books tbody");
+        const csrf = document.getElementById("csrf").value.trim();
+
+        fetch("/api/v1/books")
+            .then(response => {
+                if (!response.ok) throw new Error("Failed fetch");
+                return response.json();
+            })
+            .then(books => {
+               tbody.innerHTML = "";
+
+               books.forEach(book => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${book.id}</td>
+                        <td>${book.title}</td>
+                        <td>${book.author.fullName}</td>
+                        <td>
+                            <ul> ${book.genres.map(genre => `<li>${genre.name}</li>`).join('')}</ul>
+                        </td>
+                        <td><a href="/books/edit?id=${book.id}">Edit</a></td>
+                        <td><a href="#" data-id="${book.id}" class="delete">Delete</a></td>
+                        <td><a href="/comments?id=${book.id}">Show comments</a></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                tbody.querySelectorAll(".delete").forEach(btn => {
+                    btn.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        const id = btn.getAttribute("data-id");
+                        const tr = btn.closest("tr");
+
+                        if (confirm("Confirm delete this book")) {
+                            fetch(`/api/v1/books/${id}`, {
+                                method: "DELETE" ,
+                                headers: {
+                                    'X-CSRF-TOKEN': csrf
+                                }
+                            })
+                                .then(resp => {
+                                    if (resp.ok) {
+                                        tr.remove();
+                                    } else {
+                                        resp.text().then(errorMessage => {
+                                            alert(errorMessage);
+                                        });
+                                    }
+                                })
+                                .catch(() => alert("Something wrong"));
+                        }
+                    });
+                });
+            })
+            .catch(err => {
+                tbody.innerHTML = "<tr><td>Error loading</td></tr>";
+            });
+    });
+</script>
+</body>
+</html>
