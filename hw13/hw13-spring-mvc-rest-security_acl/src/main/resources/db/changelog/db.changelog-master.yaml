@@ -1,0 +1,65 @@
+databaseChangeLog:
+  - changeSet:
+      id: tag-0.0
+      author: oksana
+      context: init
+      comment: "Tag for empty database"
+      changes:
+        - tagDatabase:
+            tag: v0.0
+  - include:
+      file: v1_0/db.changelog-1.0-create-authors-table.yaml
+      relativeToChangelogFile: true
+      comment: "create table authors"
+  - include:
+      file: v1_0/db.changelog-1.0-create-genres-table.yaml
+      relativeToChangelogFile: true
+      comment: "create table genres"
+  - include:
+      file: v1_0/db.changelog-1.0-create-books-table.yaml
+      relativeToChangelogFile: true
+      comment: "create table books"
+  - include:
+      file: v1_0/db.changelog-1.0-create-comments-table.yaml
+      relativeToChangelogFile: true
+      comment: "create table comments"
+  - include:
+      file: v1_0/db.changelog-1.0-create-books_genres-table.yaml
+      relativeToChangelogFile: true
+      comment: "create table books_genres"
+  - include:
+      file: v1_0/db.changelog-1.0-create-users-table.yaml
+      relativeToChangelogFile: true
+      comment: "create table users"
+
+  - changeSet:
+      id: tag-1.0
+      author: oksana
+      changes:
+        - tagDatabase:
+            tag: v1.0
+  - include:
+      file: v1_1/db.changelog-1.1-insert-into-authors.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: v1_1/db.changelog-1.1-insert-into-genres.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: v1_1/db.changelog-1.1-insert-into-books.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: v1_1/db.changelog-1.1-insert-into-comments.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: v1_1/db.changelog-1.1-insert-into-books_genres.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: v1_1/db.changelog-1.1-insert-into-users.yaml
+      relativeToChangelogFile: true
+
+  - changeSet:
+      id: tag-1.1
+      author: oksana
+      changes:
+        - tagDatabase:
+            tag: v1.1

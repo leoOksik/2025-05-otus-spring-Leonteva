@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Edit book</title>
+    <style>
+        body {
+            padding: 50px;
+        }
+        label {
+            display: inline-block;
+            width: 100px;
+        }
+        input:read-only {
+            background: lightgray;
+        }
+        .row {
+            margin-top: 10px;
+        }
+         .genres-list {
+            margin-left: 100px;
+        }
+        .row input[type="text"], .row select {
+            width: 300px;
+            box-sizing: border-box;
+        }
+        .errors {
+            margin-left: 100px;
+            font-size: 12px;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<input type="hidden" id="csrf" th:value="${_csrf.token}"/>
+<form id="edit-form" action="edit-book.html" th:method="put">
+    <div class="row">
+        <label for="id-input">ID:</label>
+        <input id="id-input" type="text" readonly="readonly"/>
+    </div>
+
+    <div class="row">
+        <label for="book-title-input">Title:</label>
+        <input id="book-title-input" type="text"/>
+        <div class="errors" id="title-error"></div>
+    </div>
+
+    <div class="row">
+        <label for="author-select">Author:</label>
+        <select id="author-select"></select>
+    </div>
+
+    <div class="row">
+        <label for="genre-select">Genres:</label>
+        <select id="genre-select" multiple size="6"></select>
+    </div>
+
+    <div class="row">
+        <button type="button" onclick="updateBook()">Save</button>
+        <a href="/books"><button type="button">Cancel</button></a>
+    </div>
+</form>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookId = urlParams.get('id');
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        try {
+            await loadAuthors();
+            await loadGenres();
+            if (bookId) await loadBook(bookId);
+        } catch (e) {
+            alert("error message: " + e.message);
+        }
+    });
+
+    async function loadAuthors() {
+        const resp = await fetch("/api/v1/authors");
+        if (!resp.ok) throw new Error("Failed loading authors");
+        const authors = await resp.json();
+        const select = document.getElementById("author-select");
+        authors.forEach(a => {
+            const opt = document.createElement("option");
+            opt.value = a.id;
+            opt.textContent = a.fullName;
+            select.appendChild(opt);
+        });
+    }
+
+    async function loadGenres() {
+        const resp = await fetch("/api/v1/genres");
+        if (!resp.ok) throw new Error("Failed loading genres");
+        const genres = await resp.json();
+        const select = document.getElementById("genre-select");
+        genres.forEach(g => {
+            const opt = document.createElement("option");
+            opt.value = g.id;
+            opt.textContent = g.name;
+            select.appendChild(opt);
+        });
+    }
+
+    async function loadBook(id) {
+        const resp = await fetch(`/api/v1/books/${id}`);
+        if (!resp.ok) throw new Error("Book not found");
+        const book = await resp.json();
+
+        document.getElementById("id-input").value = book.id;
+        document.getElementById("book-title-input").value = book.title;
+
+        if (book.author) {
+            document.getElementById("author-select").value = book.author.id;
+        }
+
+        if (book.genres) {
+            const genreSelect = document.getElementById("genre-select");
+            const genreIds = book.genres.map(g => g.id);
+            Array.from(genreSelect.options).forEach(opt => {
+                if (genreIds.includes(Number(opt.value))) {
+                    opt.selected = true;
+                }
+            });
+        }
+    }
+
+    async function updateBook() {
+        const title = document.getElementById("book-title-input").value.trim();
+        const authorId = document.getElementById("author-select").value;
+        const selectedGenres = Array.from(document.getElementById("genre-select").selectedOptions)
+                                    .map(opt => Number(opt.value));
+        const csrf = document.getElementById("csrf").value.trim();
+
+        const book = {
+            id: Number(bookId),
+            title: title,
+            authorId: Number(authorId),
+            genreIds: selectedGenres
+        };
+
+        try {
+            const resp = await fetch(`/api/v1/books/${bookId}`, {
+                method: 'PUT',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrf
+                },
+                body: JSON.stringify(book)
+            });
+
+            if (resp.ok) {
+                window.location.href = "/books";
+            } else {
+                const errorMessage = await resp.text();
+                alert(errorMessage);
+            }
+        } catch (e) {
+            alert("Something wrong");
+        }
+    }
+</script>
+
+</body>
+</html>

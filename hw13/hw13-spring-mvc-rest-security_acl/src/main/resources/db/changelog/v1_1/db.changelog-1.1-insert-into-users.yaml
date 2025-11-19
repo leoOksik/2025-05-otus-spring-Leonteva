@@ -1,0 +1,31 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1.1-insert-into-users
+      author: oksana
+      comment: "Insert users for testing"
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: username
+                  value: "user_login_1"
+              - column:
+                  name: password
+                  value: "$2a$10$EinLfep3AieplPSvagS9B.uxeiJ47mh1j58PYk8f9BSIeZQKA85H6"
+              - column:
+                  name: role
+                  value: "ADMIN"
+
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: username
+                  value: "user_login_2"
+              - column:
+                  name: password
+                  value: "$2a$10$9RSEIM.0TIjz.JgcGzL01.tfSpeYvuhpfvf1pO1jS4wnTA..h5.Yi"
+              - column:
+                  name: role
+                  value: "USER"
