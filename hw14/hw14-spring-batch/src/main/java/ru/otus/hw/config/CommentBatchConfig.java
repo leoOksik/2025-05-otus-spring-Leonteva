@@ -9,12 +9,15 @@ import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.batch.item.data.builder.RepositoryItemWriterBuilder;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
+import ru.otus.hw.listener.ProcessListener;
+import ru.otus.hw.listener.WriteListener;
 import ru.otus.hw.model.jpa.Comment;
 import ru.otus.hw.model.mongo.CommentMongo;
+import ru.otus.hw.processor.Cache;
 import ru.otus.hw.processor.CommentItemProcessor;
 import ru.otus.hw.repository.jpa.JpaBookRepository;
 import ru.otus.hw.repository.mongo.MongoCommentRepository;
@@ -23,7 +26,8 @@ import ru.otus.hw.repository.mongo.MongoCommentRepository;
 @RequiredArgsConstructor
 public class CommentBatchConfig {
 
-    private static final int CHUNK = 5;
+    @Value("${batch.chunk}")
+    private int chunk;
 
     private final JobRepository jobRepository;
 
@@ -39,13 +43,13 @@ public class CommentBatchConfig {
             .name("commentReader")
             .entityManagerFactory(entityManagerFactory)
             .queryString("SELECT c FROM Comment c")
-            .pageSize(5)
+            .pageSize(chunk)
             .build();
     }
 
     @Bean
-    public CommentItemProcessor commentProcessor() {
-        return new CommentItemProcessor(jpaBookRepository);
+    public CommentItemProcessor commentProcessor(Cache cache) {
+        return new CommentItemProcessor(jpaBookRepository, cache);
     }
 
     @Bean
@@ -57,16 +61,30 @@ public class CommentBatchConfig {
     }
 
     @Bean
-    public Step commentStep(PlatformTransactionManager transactionManager,
-                            @Qualifier("commentReader") JpaPagingItemReader<Comment> reader,
-                            @Qualifier("commentProcessor") CommentItemProcessor processor,
-                            @Qualifier("commentWriter") RepositoryItemWriter<CommentMongo> writer) {
+    public ProcessListener<Comment, CommentMongo> commentProcessListener() {
+        return new ProcessListener<>();
+    }
 
+    @Bean
+    public WriteListener<Comment, CommentMongo> commentWriteListener(
+        Cache cache, ProcessListener<Comment, CommentMongo> processListener) {
+        return new WriteListener<>(cache, processListener);
+    }
+
+    @Bean
+    public Step commentStep(PlatformTransactionManager transactionManager,
+                            JpaPagingItemReader<Comment> reader,
+                            CommentItemProcessor processor,
+                            RepositoryItemWriter<CommentMongo> writer,
+                            ProcessListener<Comment, CommentMongo> processListener,
+                            WriteListener<Comment, CommentMongo> writeListener) {
         return new StepBuilder("commentStep", jobRepository)
-            .<Comment, CommentMongo>chunk(CHUNK, transactionManager)
+            .<Comment, CommentMongo>chunk(chunk, transactionManager)
             .reader(reader)
             .processor(processor)
             .writer(writer)
+            .listener(processListener)
+            .listener(writeListener)
             .build();
     }
 }

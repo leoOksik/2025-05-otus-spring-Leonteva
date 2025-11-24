@@ -25,36 +25,43 @@ public class CommentItemProcessor implements StepExecutionListener, ItemProcesso
 
     private Map<Long, BookMongo> booksMongo;
 
+    private final Cache cache;
+
     @Override
     public void beforeStep(StepExecution stepExecution) {
-
         List<Book> books = jpaBookRepository.findAll();
 
         booksMongo = books.stream().collect(Collectors.toMap(Book::getId,
-            book -> new BookMongo(
-                book.getId().toString(), book.getTitle(),
-                mapAuthor(book.getAuthor()), mapGenres(book.getGenres())
+            b -> new BookMongo(
+                cache.get("Book", b.getId()),
+                b.getTitle(),
+                mapAuthor(b.getAuthor()),
+                mapGenres(b.getGenres())
             )
         ));
     }
 
     @Override
     public CommentMongo process(Comment comment) {
-
-        return new CommentMongo(
-            comment.getId().toString(),
-            comment.getText(),
-            booksMongo.get(comment.getBook().getId())
-        );
+        CommentMongo commentMongo = new CommentMongo();
+        commentMongo.setText(comment.getText());
+        commentMongo.setBook(booksMongo.get(comment.getBook().getId()));
+        return commentMongo;
     }
 
     private AuthorMongo mapAuthor(Author author) {
-        return new AuthorMongo(author.getId().toString(), author.getFullName());
+        return new AuthorMongo(
+            cache.get("Author", author.getId()),
+            author.getFullName()
+        );
     }
 
     private List<GenreMongo> mapGenres(List<Genre> genres) {
         return genres.stream()
-            .map(g -> new GenreMongo(g.getId().toString(), g.getName()))
+            .map(g -> new GenreMongo(
+                cache.get("Genre", g.getId()),
+                g.getName())
+            )
             .toList();
     }
 }

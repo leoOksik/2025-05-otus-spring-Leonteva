@@ -9,20 +9,25 @@ import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.batch.item.data.builder.RepositoryItemWriterBuilder;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
+import ru.otus.hw.listener.ProcessListener;
+import ru.otus.hw.listener.WriteListener;
 import ru.otus.hw.model.jpa.Book;
 import ru.otus.hw.model.mongo.BookMongo;
 import ru.otus.hw.processor.BookItemProcessor;
+import ru.otus.hw.processor.Cache;
 import ru.otus.hw.repository.mongo.MongoBookRepository;
+
 
 @Configuration
 @RequiredArgsConstructor
 public class BookBatchConfig {
 
-    private static final int CHUNK = 5;
+    @Value("${batch.chunk}")
+    private int chunk;
 
     private final JobRepository jobRepository;
 
@@ -36,13 +41,13 @@ public class BookBatchConfig {
             .name("bookReader")
             .entityManagerFactory(entityManagerFactory)
             .queryString("SELECT b FROM Book b")
-            .pageSize(5)
+            .pageSize(chunk)
             .build();
     }
 
     @Bean
-    public BookItemProcessor bookProcessor() {
-        return new BookItemProcessor();
+    public BookItemProcessor bookProcessor(Cache cache) {
+        return new BookItemProcessor(cache);
     }
 
     @Bean
@@ -54,16 +59,30 @@ public class BookBatchConfig {
     }
 
     @Bean
-    public Step bookStep(PlatformTransactionManager transactionManager,
-                         @Qualifier("bookReader") JpaPagingItemReader<Book> reader,
-                         @Qualifier("bookProcessor") BookItemProcessor processor,
-                         @Qualifier("bookWriter") RepositoryItemWriter<BookMongo> writer) {
+    public ProcessListener<Book, BookMongo> bookProcessListener() {
+        return new ProcessListener<>();
+    }
 
+    @Bean
+    public WriteListener<Book, BookMongo> bookWriteListener(
+        Cache cache, ProcessListener<Book, BookMongo> processListener) {
+        return new WriteListener<>(cache, processListener);
+    }
+
+    @Bean
+    public Step bookStep(PlatformTransactionManager transactionManager,
+                         JpaPagingItemReader<Book> reader,
+                         BookItemProcessor processor,
+                         RepositoryItemWriter<BookMongo> writer,
+                         ProcessListener <Book, BookMongo> processListener,
+                         WriteListener <Book, BookMongo> writeListener) {
         return new StepBuilder("bookStep", jobRepository)
-            .<Book, BookMongo>chunk(CHUNK, transactionManager)
+            .<Book, BookMongo>chunk(chunk, transactionManager)
             .reader(reader)
             .processor(processor)
             .writer(writer)
+            .listener(processListener)
+            .listener(writeListener)
             .build();
     }
 }

@@ -9,20 +9,24 @@ import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.batch.item.data.builder.RepositoryItemWriterBuilder;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
+import ru.otus.hw.listener.ProcessListener;
+import ru.otus.hw.listener.WriteListener;
 import ru.otus.hw.model.jpa.Author;
 import ru.otus.hw.model.mongo.AuthorMongo;
 import ru.otus.hw.processor.AuthorItemProcessor;
+import ru.otus.hw.processor.Cache;
 import ru.otus.hw.repository.mongo.MongoAuthorRepository;
 
 @Configuration
 @RequiredArgsConstructor
 public class AuthorBatchConfig {
 
-    private static final int CHUNK = 5;
+    @Value("${batch.chunk}")
+    private int chunk;
 
     private final JobRepository jobRepository;
 
@@ -31,12 +35,17 @@ public class AuthorBatchConfig {
     private final MongoAuthorRepository mongoAuthorRepository;
 
     @Bean
+    public Cache cache() {
+        return new Cache();
+    }
+
+    @Bean
     public JpaPagingItemReader<Author> authorReader() {
         return new JpaPagingItemReaderBuilder<Author>()
             .name("authorReader")
             .entityManagerFactory(entityManagerFactory)
             .queryString("SELECT a FROM Author a")
-            .pageSize(5)
+            .pageSize(chunk)
             .build();
     }
 
@@ -54,16 +63,30 @@ public class AuthorBatchConfig {
     }
 
     @Bean
-    public Step authorStep(PlatformTransactionManager transactionManager,
-                           @Qualifier("authorReader") JpaPagingItemReader<Author> reader,
-                           @Qualifier("authorProcessor") AuthorItemProcessor processor,
-                           @Qualifier("authorWriter") RepositoryItemWriter<AuthorMongo> writer) {
+    public ProcessListener<Author, AuthorMongo> authorProcessListener() {
+        return new ProcessListener<>();
+    }
 
+    @Bean
+    public WriteListener<Author, AuthorMongo> authorWriteListener(
+        Cache cache, ProcessListener<Author, AuthorMongo> processListener) {
+        return new WriteListener<>(cache, processListener);
+    }
+
+    @Bean
+    public Step authorStep(PlatformTransactionManager transactionManager,
+                           JpaPagingItemReader<Author> reader,
+                           AuthorItemProcessor processor,
+                           RepositoryItemWriter<AuthorMongo> writer,
+                           ProcessListener<Author, AuthorMongo> processListener,
+                           WriteListener<Author, AuthorMongo> writeListener) {
         return new StepBuilder("authorStep", jobRepository)
-            .<Author, AuthorMongo>chunk(CHUNK, transactionManager)
+            .<Author, AuthorMongo>chunk(chunk, transactionManager)
             .reader(reader)
             .processor(processor)
             .writer(writer)
+            .listener(processListener)
+            .listener(writeListener)
             .build();
     }
 }

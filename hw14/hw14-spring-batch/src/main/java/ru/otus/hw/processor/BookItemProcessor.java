@@ -9,27 +9,29 @@ import ru.otus.hw.model.mongo.GenreMongo;
 
 import java.util.List;
 
-
 @RequiredArgsConstructor
 public class BookItemProcessor implements ItemProcessor<Book, BookMongo> {
+
+    private final Cache cache;
 
     @Override
     public BookMongo process(Book book) {
 
         AuthorMongo authorMongo = new AuthorMongo(
-            book.getAuthor().getId().toString(),
-            book.getAuthor().getFullName()
-        );
+            cache.get("Author", book.getAuthor().getId()),
+            book.getAuthor().getFullName());
 
         List<GenreMongo> genresMongo = book.getGenres().stream()
-            .map(g -> new GenreMongo(g.getId().toString(), g.getName()))
+            .map(g -> new GenreMongo(
+                cache.get("Genre", g.getId()),
+                g.getName()))
             .toList();
 
-        return new BookMongo(
-            book.getId().toString(),
-            book.getTitle(),
-            authorMongo,
-            genresMongo
-        );
+        BookMongo bookMongo = new BookMongo();
+        bookMongo.setTitle(book.getTitle());
+        bookMongo.setAuthor(authorMongo);
+        bookMongo.setGenres(genresMongo);
+
+        return bookMongo;
     }
 }

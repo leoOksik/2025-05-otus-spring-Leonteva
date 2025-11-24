@@ -8,9 +8,8 @@ public class GenreItemProcessor implements ItemProcessor<Genre, GenreMongo> {
 
     @Override
     public GenreMongo process(Genre genre) {
-        return new GenreMongo(
-            genre.getId().toString(),
-            genre.getName()
-        );
+        GenreMongo genreMongo = new GenreMongo();
+        genreMongo.setName(genre.getName());
+       return genreMongo;
     }
 }

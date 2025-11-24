@@ -5,7 +5,6 @@ spring:
     username: sa
     password:
 
-
   jpa:
     generate-ddl: false
     hibernate:
@@ -20,7 +19,6 @@ spring:
       schema-locations: classpath:schema.sql
       data-locations: classpath:import.sql
 
-
   data:
     mongodb:
       host: localhost
@@ -32,7 +30,9 @@ spring:
       enabled: true
     noninteractive:
       enabled: false
-
     command:
       version:
         enabled: false
+
+batch:
+  chunk: 1000

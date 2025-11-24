@@ -72,7 +72,7 @@ class MongoTest {
 
         assertThat(genresMongoActual)
             .hasSize(genresMongoExpected.size())
-            .usingRecursiveComparison()
+            .usingRecursiveComparison().ignoringFields("id")
             .isEqualTo(genresMongoExpected);
     }
 
@@ -85,7 +85,7 @@ class MongoTest {
 
         assertThat(authorsMongoActual)
             .hasSize(authorsMongoExpected.size())
-            .usingRecursiveComparison()
+            .usingRecursiveComparison().ignoringFields("id")
             .isEqualTo(authorsMongoExpected);
     }
 
@@ -99,6 +99,7 @@ class MongoTest {
         assertThat(booksMongoActual)
             .hasSize(booksMongoExpected.size())
             .usingRecursiveComparison()
+            .ignoringFields("id", "author.id", "genres.id")
             .isEqualTo(booksMongoExpected);
     }
 
@@ -112,6 +113,7 @@ class MongoTest {
         assertThat(commentsMongoActual)
             .hasSize(commentsMongoExpected.size())
             .usingRecursiveComparison()
+            .ignoringFields("id", "book.id", "book.author.id",  "book.genres.id")
             .isEqualTo(commentsMongoExpected);
     }
 
