@@ -1,0 +1,9 @@
+version: '3.8'
+services:
+  spring-mvc:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hw17-spring-mvc-rest-docker
+    ports:
+      - "8080:8080"
