@@ -15,3 +15,6 @@
 
 Пароль ( для проверки )
 Admin - user_login_1 t645f$#
+
+https://hub.docker.com/r/oscarfonts/h2
+docker run -d -p 1521:1521 -p 81:81 -v /path/to/local/data_dir:/opt/h2-data -e H2_OPTIONS=-ifNotExists --name=MyH2Instance oscarfonts/h2
