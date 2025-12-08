@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  spring-mvc:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hw17-spring-mvc-rest-docker
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:h2:tcp://h2db:1521/bookstore
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      - h2db
+
+  h2db:
+    image: oscarfonts/h2:2.2.224
+    container_name: h2db
+    restart: always
+    ports:
+      - "8081:1521"
+      - "8082:81"
+    environment:
+      H2_OPTIONS: "-ifNotExists"
+    volumes:
+      - h2_data:/opt/h2-data
+
+volumes:
+  h2_data:

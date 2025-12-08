@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Create book</title>
+    <style>
+        body {
+            padding: 50px;
+        }
+        label {
+            display: inline-block;
+            width: 100px;
+        }
+        input:read-only {
+            background: lightgray;
+        }
+        .row {
+            margin-top: 10px;
+        }
+        .row input[type="text"], .row select {
+            width: 300px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+
+<input type="hidden" id="csrf" th:value="${_csrf.token}"/>
+
+<form id="create-form" action="create-book.html" th:method="post">
+    <h3>Book Info:</h3>
+
+    <div class="row">
+        <label for="id-input">ID:</label>
+        <input id="id-input" type="text" readonly="readonly"/>
+    </div>
+
+    <div class="row">
+        <label for="book-title-input">Title:</label>
+        <input id="book-title-input" name="title" type="text"/>
+    </div>
+
+    <div class="row">
+        <label for="author-select">Author:</label>
+        <select id="author-select" name="authorId">
+            <option value="">-- Select author --</option>
+        </select>
+    </div>
+
+    <div class="row">
+        <label for="genre-select">Genres:</label>
+        <select id="genre-select" name="genreIds" multiple size="6">
+        </select>
+    </div>
+
+    <div class="row">
+        <button type="button" onclick="saveBook()">Save</button>
+        <a href="book-list.html" th:href="@{/books}">
+            <button type="button">Cancel</button>
+        </a>
+    </div>
+</form>
+
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        await loadAuthors();
+        await loadGenres();
+    });
+
+    async function loadAuthors() {
+        try {
+            const resp = await fetch("/api/v1/authors");
+            if (!resp.ok) throw new Error("Failed loading authors");
+            const authors = await resp.json();
+
+            const select = document.getElementById("author-select");
+            authors.forEach(author => {
+                const opt = document.createElement("option");
+                opt.value = author.id;
+                opt.textContent = author.fullName;
+                select.appendChild(opt);
+            });
+        } catch (e) {
+            alert("Error loading authors: " + e.message);
+        }
+    }
+
+    async function loadGenres() {
+        try {
+            const resp = await fetch("/api/v1/genres");
+            if (!resp.ok) throw new Error("Failed loading genres");
+            const genres = await resp.json();
+
+            const select = document.getElementById("genre-select");
+            genres.forEach(genre => {
+                const opt = document.createElement("option");
+                opt.value = genre.id;
+                opt.textContent = genre.name;
+                select.appendChild(opt);
+            });
+        } catch (e) {
+            alert("Error loading genres: " + e.message);
+        }
+    }
+
+    async function saveBook() {
+        const title = document.getElementById("book-title-input").value.trim();
+        const authorId = document.getElementById("author-select").value;
+        const genreSelect = document.getElementById("genre-select");
+        const selectedGenres = Array.from(genreSelect.selectedOptions).map(opt => opt.value);
+        const csrf = document.getElementById("csrf").value.trim();
+
+        const book = {
+            title: title,
+            authorId: parseInt(authorId),
+            genreIds: selectedGenres.map(id => parseInt(id))
+        };
+
+        try {
+            const resp = await fetch("/api/v1/books", {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrf
+                },
+                body: JSON.stringify(book)
+            });
+
+             if (resp.ok) {
+                window.location.href = "/books";
+            } else {
+              const errorMessage = await resp.text();
+              alert(errorMessage);
+            }
+        } catch (e) {
+             alert("Something wrong");
+        }
+    }
+</script>
+
+</body>
+</html>
