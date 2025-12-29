@@ -1,0 +1,33 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1.1-insert-into-books
+      author: oksana
+      comment: "Insert books for testing"
+      changes:
+        - insert:
+            tableName: books
+            columns:
+              - column:
+                  name: title
+                  value: "BookTitle_1"
+              - column:
+                  name: author_id
+                  valueNumeric: 1
+        - insert:
+            tableName: books
+            columns:
+              - column:
+                  name: title
+                  value: "BookTitle_2"
+              - column:
+                  name: author_id
+                  valueNumeric: 2
+        - insert:
+            tableName: books
+            columns:
+              - column:
+                  name: title
+                  value: "BookTitle_3"
+              - column:
+                  name: author_id
+                  valueNumeric: 3
