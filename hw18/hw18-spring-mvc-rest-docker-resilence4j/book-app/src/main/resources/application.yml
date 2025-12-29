@@ -1,0 +1,21 @@
+resilience4j:
+  ratelimiter:
+    instances:
+      serviceRateLimiter:
+        limit-for-period: 300
+        limit-refresh-period: 1s
+        timeout-duration: 300ms
+  retry:
+    instances:
+      serviceRetry:
+        max-attempts: 10
+        wait-duration: 300ms
+
+rest:
+  client:
+    base-url: http://book-service:8080/api/v1
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
